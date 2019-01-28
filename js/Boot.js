@@ -1,18 +1,17 @@
-var myGame = {};
+var gameControl = {};
+var game;
 
-myGame.Boot = function(game){ };
+gameControl.Boot = function(game){ };
 
-myGame.Boot.prototype = {
+gameControl.Boot.prototype = {
 	
 	preload: function() {
-    this.load.image("preloaderBar", "images/loader_bar.png");
-    this.load.image("titleimage", "images/TitleImage.png");
-        
+    this.load.image("preloaderBar", "assets/loader_bar.png");
+    this.load.image("titleImage", "assets/TitleImage.png");   
     },
 
 	create: function() {
-        console.log("in boot");
+        debug.log("In boot");
         this.state.start("Preloader");
-	}
-	
+	}	
 };
