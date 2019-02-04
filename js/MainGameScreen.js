@@ -22,8 +22,8 @@ gameControl.MainGameScreen.prototype = {
 		this.camera.follow(player, null, 0.05, 0.05);
 
 		player.body.collideWorldBounds = true;
-		player.body.gravity.y = 1000;
-		player.body.maxVelocity.y = 500;
+		player.body.gravity.y = 2000;
+		player.body.maxVelocity.y = 2000;
 
 		// Set animations
 		player.animations.add("left", []);
@@ -42,13 +42,13 @@ gameControl.MainGameScreen.prototype = {
 		
 			// Check input
 			if (cursors.left.isDown) {
-				player.body.velocity.x = -150;
+				player.body.velocity.x = -300;
 			} else if (cursors.right.isDown) {
-				player.body.velocity.x = 150;
+				player.body.velocity.x = 300;
 			} 
 			
 			if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-				player.body.velocity.y = -1000;
+				player.body.velocity.y = -800;
 			}
 	},
 
