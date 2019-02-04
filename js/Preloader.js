@@ -15,6 +15,7 @@ gameControl.Preloader.prototype = {
         
         // Preload main game assets here
 		this.load.image("titleScreen", "assets/TitleBG.png");
+		this.load.image("dialog", "assets/dialog-animation.png");
 		this.load.image("player", "assets/player.png");
 		this.load.image("floor", "assets/floor.png");
 		this.load.image("bg", "assets/template-bg.jpg");
