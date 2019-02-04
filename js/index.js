@@ -1,7 +1,7 @@
 /// <reference path="../typescript/phaser.d.ts" />
 
 window.onload = function() {
-    game = new Phaser.Game(800,600,Phaser.AUTO, "gameContainer"); 
+    game = new Phaser.Game(parseInt($("#game-container").css("width")) - 14, 600,Phaser.AUTO, "game-container"); 
     game.state.add("Boot", gameControl.Boot);
     game.state.add("Preloader", gameControl.Preloader);
     game.state.add("StartScreen", gameControl.StartScreen);

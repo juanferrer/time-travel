@@ -5,17 +5,21 @@ gameControl.MainGameScreen.prototype = {
 	create: function () {
 		debug.log("Main game screen");
 
-		game.physics.startSystem(Phaser.Physics.ARCADE);
-		game.physics.arcade.gravity.y = 100;
+		this.physics.startSystem(Phaser.Physics.ARCADE);
+		this.physics.arcade.gravity.y = 100;
+
+		this.add.tileSprite(0, 0, 2000, 600, "bg");
+		this.world.resize(2000, 600);
 
 		// Create assets on screen
-		floor = game.add.sprite(50, 500, "floor");
-		game.physics.enable(floor, Phaser.Physics.ARCADE);
+		floor = this.add.sprite(50, 500, "floor");
+		this.physics.enable(floor, Phaser.Physics.ARCADE);
 		floor.body.immovable = true;
 		floor.body.allowGravity = false;
 
-		player = game.add.sprite(game.world.centerX, game.world.centerY, "player");
-		game.physics.enable(player, Phaser.Physics.ARCADE);
+		player = this.add.sprite(this.world.centerX, this.world.centerY, "player");
+		this.physics.enable(player, Phaser.Physics.ARCADE);
+		this.camera.follow(player, null, 0.05, 0.05);
 
 		player.body.collideWorldBounds = true;
 		player.body.gravity.y = 1000;
@@ -27,13 +31,13 @@ gameControl.MainGameScreen.prototype = {
 		player.animations.add("right", []);
 
 		// Set controls
-		cursors = game.input.keyboard.createCursorKeys();
-		jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+		cursors = this.input.keyboard.createCursorKeys();
+		jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	},
 
 	update: function () {
 		    // Physics
-			game.physics.arcade.collide(player, floor, this.collisionHandler, null, this);
+			this.physics.arcade.collide(player, floor, this.collisionHandler, null, this);
 			player.body.velocity.x = 0;	
 		
 			// Check input
