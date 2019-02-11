@@ -13,12 +13,15 @@ gameControl.Preloader.prototype = {
         this.titleText = this.add.image(this.world.centerX, this.world.centerY - 220, "titleImage");
         this.titleText.anchor.setTo(0.5, 0.5);
         
-        // Preload main game assets here
+        // Images
         this.load.image("titleScreen", "assets/TitleBG.png");
         this.load.image("dialog", "assets/dialog-animation.png");
         this.load.image("player", "assets/player.png");
         this.load.image("floor", "assets/floor.png");
         this.load.image("bg", "assets/template-bg.jpg");
+
+        // Sounds
+        //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");
     },
 
     create: function () {
