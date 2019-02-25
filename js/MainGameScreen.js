@@ -1,4 +1,8 @@
 gameControl.MainGameScreen = function(game) {
+    this.map;
+    this.bgLayer;
+    this.floorLayer;
+    this.platformLayer;
 };
 
 gameControl.MainGameScreen.prototype = {	
@@ -8,16 +12,31 @@ gameControl.MainGameScreen.prototype = {
         this.physics.startSystem(Phaser.Physics.ARCADE);
         this.physics.arcade.gravity.y = 100;
 
-        this.add.tileSprite(0, 0, 2000, 600, "bg");
-        this.world.resize(2000, 600);
+        this.map = this.add.tilemap("level");
+        this.map.addTilesetImage("tileset", "tiles");
+        this.bgLayer = this.map.createLayer("BG");
+        this.floorLayer = this.map.createLayer("Floor");
+        this.platformLayer = this.map.createLayer("Platforms");
+
+        this.map.setCollisionBetween(1, 3, true, "Platforms");
+        this.map.setCollisionBetween(4, 8, true, "Floor");
+
+        this.world.resize(5000, 1000);
+
+        /*let platformsNumber = 1;
 
         // Create assets on screen
-        floor = this.add.sprite(50, 500, "floor");
-        this.physics.enable(floor, Phaser.Physics.ARCADE);
-        floor.body.immovable = true;
-        floor.body.allowGravity = false;
+        platforms = [];
+        for (let i = 0; i < platformsNumber; ++i) {
+            platforms.push(this.add.sprite(50, 500, "platform"));
+            this.physics.enable(platform, Phaser.Physics.ARCADE);
+            platforms[i].body.immovable = true;
+            platforms[i].body.allow
+        }*/
 
-        player = this.add.sprite(this.world.centerX, this.world.centerY, "player");
+        this.physics.enableGravity = false;
+
+        player = this.add.sprite(5, 800, "player");
         this.physics.enable(player, Phaser.Physics.ARCADE);
         this.camera.follow(player, null, 0.05, 0.05);
 
@@ -71,7 +90,9 @@ gameControl.MainGameScreen.prototype = {
             }
 
             // Physics
-            this.physics.arcade.collide(player, floor, this.collisionHandler, null, this);
+            //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
+            this.physics.arcade.collide(player, this.floorLayer);
+            this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
             player.body.velocity.x = 0;	
         
             // Check input
