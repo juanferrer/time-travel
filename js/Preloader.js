@@ -19,7 +19,7 @@ gameControl.Preloader.prototype = {
         this.load.image("player", "assets/player.png");
         this.load.image("platform", "assets/platform.png");
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.image("tiles", "assets/3717TileMap.png");
+        this.load.image("tiles", "assets/tilemap.png");
 
         // Sounds
         //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");

@@ -13,13 +13,13 @@ gameControl.MainGameScreen.prototype = {
         this.physics.arcade.gravity.y = 100;
 
         this.map = this.add.tilemap("level");
-        this.map.addTilesetImage("tileset", "tiles");
+        this.map.addTilesetImage("tilemap", "tiles");
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
         this.platformLayer = this.map.createLayer("Platforms");
 
-        this.map.setCollisionBetween(1, 3, true, "Platforms");
-        this.map.setCollisionBetween(4, 8, true, "Floor");
+        this.map.setCollisionBetween(2, 3, true, "Platforms");
+        this.map.setCollisionBetween(1, 2, true, "Floor");
 
         this.world.resize(5000, 1000);
 
