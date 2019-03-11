@@ -3,6 +3,12 @@ gameControl.MainGameScreen = function(game) {
     this.bgLayer;
     this.floorLayer;
     this.platformLayer;
+
+    // Player animation info
+    this.playerWalking;
+    this.playerInAir;
+    this.jumpFPS;
+    this.walkFPS;
 };
 
 gameControl.MainGameScreen.prototype = {	
@@ -13,7 +19,7 @@ gameControl.MainGameScreen.prototype = {
         this.physics.arcade.gravity.y = 100;
 
         this.map = this.add.tilemap("level");
-        this.map.addTilesetImage("tilemap", "tiles");
+        this.map.addTilesetImage("tileset", "tiles");
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
         this.platformLayer = this.map.createLayer("Platforms");
@@ -37,6 +43,24 @@ gameControl.MainGameScreen.prototype = {
         this.physics.enableGravity = false;
 
         player = this.add.sprite(5, 800, "player");
+        player.anchor.setTo(0.5, 0.5);
+
+        this.walkFPS = 8;
+        this.jumpFPS = 20;
+
+        // Add animations
+        player.animations.add("walk", [1, 2]);
+        player.animations.add("jump", [3, 4, 5]);
+        player.animations.add("inAir", [5]);       
+        player.animations.add("land", [5, 6, 7]);
+
+        player.events.onAnimationComplete.add((that) => {
+            // Check what animation was playing and play what should go next
+            if (player.animations.currentAnim.name === "jump") {
+                player.animations.play("inAir", this.jumpFPS / this.time.slowMotion);
+            }
+        }, this);
+
         this.physics.enable(player, Phaser.Physics.ARCADE);
         this.camera.follow(player, null, 0.05, 0.05);
 
@@ -56,11 +80,6 @@ gameControl.MainGameScreen.prototype = {
 
         this.isTimeStopped = false;
 
-        // Set animations
-        player.animations.add("left", []);
-        player.animations.add("turn", []);
-        player.animations.add("right", []);
-
         // Set controls
         cursors = this.input.keyboard.createCursorKeys();
         jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -69,6 +88,9 @@ gameControl.MainGameScreen.prototype = {
     },	
 
     update: function () {
+            // Reset bools
+            this.playerWalking = false;    
+
             // Update cooldowns
             if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
             if (player.slowCD > 0) player.slowCD -= this.time.physicsElapsed;
@@ -91,19 +113,25 @@ gameControl.MainGameScreen.prototype = {
 
             // Physics
             //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
-            this.physics.arcade.collide(player, this.floorLayer);
+            this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
             this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
             player.body.velocity.x = 0;	
         
             // Check input
             if (cursors.left.isDown) {
                 player.body.velocity.x = -300;
+                this.playerWalking = true;
+                if (player.scale.x > 0) player.scale.x *= -1;
             } else if (cursors.right.isDown) {
                 player.body.velocity.x = 300;
+                this.playerWalking = true;
+                if (player.scale.x < 0) player.scale.x *= -1;
             } 
             
             if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-                player.body.velocity.y = -800;
+                player.body.velocity.y = -600;
+                player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
+                this.playerInAir = true;
             }
 
             // Handle abilities
@@ -131,9 +159,20 @@ gameControl.MainGameScreen.prototype = {
                 this.time.slowMotion = 1.0;
                 this.time.desiredFps = 60;
             }
+
+            // Play animations 
+            if (this.playerWalking && !this.playerInAir) {
+                player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
+            } else {
+                player.animations.stop("walk");
+            }
     },
 
     collisionHandler: function () {
-        debug.log("Collision");
+        if (this.playerInAir) {
+            this.playerInAir = false;
+            player.animations.stop("inAir");
+            player.animations.play("land", this.jumpFPS / this.time.slowMotion);
+        }
     }
 };
