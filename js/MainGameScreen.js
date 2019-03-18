@@ -3,12 +3,38 @@ gameControl.MainGameScreen = function(game) {
     this.bgLayer;
     this.floorLayer;
     this.platformLayer;
+    this.dialog;
+    this.dialogText;
 
     // Player animation info
     this.playerWalking;
     this.playerInAir;
     this.jumpFPS;
     this.walkFPS;
+
+    this.tileSize = 60;
+    this.tilesX = 100;
+    this.tilesY = 15;
+
+
+    this.collisionHandler = function() {
+        if (this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
+            this.playerInAir = false;
+            player.animations.stop("inAir");
+            player.animations.play("land", this.jumpFPS / this.time.slowMotion);
+        }
+    },
+
+    this.showDialog = function(x, y, text) {
+        this.dialog.resize(300, 100);
+        this.dialog.x = player.x;
+        this.dialog.y = player.y - 80;
+        this.dialog.visible = true;
+    },
+
+    this.hideDialog = function() {
+        this.dialog.visible = false;
+    }
 };
 
 gameControl.MainGameScreen.prototype = {	
@@ -20,6 +46,7 @@ gameControl.MainGameScreen.prototype = {
 
         this.map = this.add.tilemap("level");
         this.map.addTilesetImage("tileset", "tiles");
+        game.stage.backgroundColor = "#FFAC5B";
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
         this.platformLayer = this.map.createLayer("Platforms");
@@ -27,7 +54,17 @@ gameControl.MainGameScreen.prototype = {
         this.map.setCollisionBetween(2, 3, true, "Platforms");
         this.map.setCollisionBetween(1, 2, true, "Floor");
 
-        this.world.resize(5000, 1000);
+        this.world.resize(this.tileSize * this.tilesX, this.tileSize * this.tilesY);
+
+        player = this.add.sprite(5, 700, "player");
+        player.anchor.setTo(0.5, 0.5);
+
+        this.dialog = this.add.nineSlice(player.x, player.y - 60, "dialog", null, 100, 70);
+        this.dialog.visible = false;
+        this.dialog.anchor.setTo(0, 0.5);
+      
+        this.dialogText = game.add.text(0, 0, "Some text to test", {font: "40px 'VT323'", fill: "#000000"});
+        this.dialog.addChild(this.dialogText);
 
         /*let platformsNumber = 1;
 
@@ -41,9 +78,6 @@ gameControl.MainGameScreen.prototype = {
         }*/
 
         this.physics.enableGravity = false;
-
-        player = this.add.sprite(5, 800, "player");
-        player.anchor.setTo(0.5, 0.5);
 
         this.walkFPS = 8;
         this.jumpFPS = 20;
@@ -160,19 +194,16 @@ gameControl.MainGameScreen.prototype = {
                 this.time.desiredFps = 60;
             }
 
+            // Debug
+            if (game.input.keyboard.isDown(Phaser.Keyboard.P)) {
+                this.showDialog(player.x, player.y, "");
+            }
+
             // Play animations 
-            if (this.playerWalking && !this.playerInAir) {
+            if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
                 player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
             } else {
                 player.animations.stop("walk");
             }
-    },
-
-    collisionHandler: function () {
-        if (this.playerInAir) {
-            this.playerInAir = false;
-            player.animations.stop("inAir");
-            player.animations.play("land", this.jumpFPS / this.time.slowMotion);
-        }
     }
 };

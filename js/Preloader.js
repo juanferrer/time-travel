@@ -7,6 +7,9 @@ gameControl.Preloader = function(game) {
 gameControl.Preloader.prototype = {
     
     preload: function () {
+        // Load plugins
+        game.plugins.add(PhaserNineSlice.Plugin);
+
         this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY, "preloaderBar");
         this.preloadBar.anchor.setTo(0.5, 0.5);
         this.load.setPreloadSprite(this.preloadBar);
@@ -15,11 +18,11 @@ gameControl.Preloader.prototype = {
         
         // Images
         this.load.image("titleScreen", "assets/TitleBG.png");
-        this.load.image("dialog", "assets/dialog-animation.png");
         this.load.spritesheet("player", "assets/detective.png", 60, 70, 8);
         this.load.image("platform", "assets/platform.png");
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "assets/tilemap.png");
+        this.load.nineSlice("dialog", "assets/dialog.png", 15, 45, 15, 30);
 
         // Sounds
         //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");
