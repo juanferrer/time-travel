@@ -102,6 +102,8 @@ gameControl.MainGameScreen.prototype = {
         player.body.gravity.y = 2000;
         player.body.maxVelocity.y = 2000;
 
+        player.body.setSize(60, 75);
+
         // Player cooldowns
         player.slowCD = 0;
         player.slowCDTime = 5;
@@ -122,88 +124,88 @@ gameControl.MainGameScreen.prototype = {
     },	
 
     update: function () {
-            // Reset bools
-            this.playerWalking = false;    
+        // Reset bools
+        this.playerWalking = false;    
 
-            // Update cooldowns
-            if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
-            if (player.slowCD > 0) player.slowCD -= this.time.physicsElapsed;
+        // Update cooldowns
+        if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
+        if (player.slowCD > 0) player.slowCD -= this.time.physicsElapsed;
 
-            // Update timers
-            if (player.slowTimer > 0) {
-                player.slowTimer -= this.time.physicsElapsed;
-                if (player.slowTimer <= 0) {
-                    this.time.desiredFps = 60;
-                    this.time.slowMotion = 1;
-                }
+        // Update timers
+        if (player.slowTimer > 0) {
+            player.slowTimer -= this.time.physicsElapsed;
+            if (player.slowTimer <= 0) {
+                this.time.desiredFps = 60;
+                this.time.slowMotion = 1;
             }
+        }
 
-            if (player.stopTimer > 0) {
-                player.stopTimer -= this.time.physicsElapsed;
-                if (player.stopTimer <= 0) {
-                    this.isTimeStopped = false;
-                }
-            }
-
-            // Physics
-            //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
-            this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
-            this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
-            player.body.velocity.x = 0;	
-        
-            // Check input
-            if (cursors.left.isDown) {
-                player.body.velocity.x = -300;
-                this.playerWalking = true;
-                if (player.scale.x > 0) player.scale.x *= -1;
-            } else if (cursors.right.isDown) {
-                player.body.velocity.x = 300;
-                this.playerWalking = true;
-                if (player.scale.x < 0) player.scale.x *= -1;
-            } 
-            
-            if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-                player.body.velocity.y = -600;
-                player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
-                this.playerInAir = true;
-            }
-
-            // Handle abilities
-            if (stopButton.isDown) {
-                if  (player.stopCD <= 0) {
-                    player.stopCD = player.stopCDTime;
-                    player.stopTimer = player.stopTime;
-                    this.isTimeStopped = true;
-                }
-            } else {
+        if (player.stopTimer > 0) {
+            player.stopTimer -= this.time.physicsElapsed;
+            if (player.stopTimer <= 0) {
                 this.isTimeStopped = false;
             }
+        }
 
-            if (slowButton.isDown) {
-                // Player is pressing slow down
-                // TODO: Slow down over time
-                if (player.slowTimer <= 0 && player.slowCD <= 0) {
-                    player.slowCD = player.slowCDTime;
-                    player.slowTimer = player.slowTime;
-                    this.time.slowMotion = 3.0;
-                    this.time.desiredFps = 180;
-                }
-            } else {
-                player.slowTimer = 0;
-                this.time.slowMotion = 1.0;
-                this.time.desiredFps = 60;
-            }
+        // Physics
+        //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
+        this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
+        this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
+        player.body.velocity.x = 0;	
+    
+        // Check input
+        if (cursors.left.isDown) {
+            player.body.velocity.x = -300;
+            this.playerWalking = true;
+            if (player.scale.x > 0) player.scale.x *= -1;
+        } else if (cursors.right.isDown) {
+            player.body.velocity.x = 300;
+            this.playerWalking = true;
+            if (player.scale.x < 0) player.scale.x *= -1;
+        } 
+        
+        if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+            player.body.velocity.y = -600;
+            player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
+            this.playerInAir = true;
+        }
 
-            // Debug
-            if (game.input.keyboard.isDown(Phaser.Keyboard.P)) {
-                this.showDialog(player.x, player.y, "");
+        // Handle abilities
+        if (stopButton.isDown) {
+            if  (player.stopCD <= 0) {
+                player.stopCD = player.stopCDTime;
+                player.stopTimer = player.stopTime;
+                this.isTimeStopped = true;
             }
+        } else {
+            this.isTimeStopped = false;
+        }
 
-            // Play animations 
-            if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
-                player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
-            } else {
-                player.animations.stop("walk");
+        if (slowButton.isDown) {
+            // Player is pressing slow down
+            // TODO: Slow down over time
+            if (player.slowTimer <= 0 && player.slowCD <= 0) {
+                player.slowCD = player.slowCDTime;
+                player.slowTimer = player.slowTime;
+                this.time.slowMotion = 3.0;
+                this.time.desiredFps = 180;
             }
+        } else {
+            player.slowTimer = 0;
+            this.time.slowMotion = 1.0;
+            this.time.desiredFps = 60;
+        }
+
+        // Debug
+        if (game.input.keyboard.isDown(Phaser.Keyboard.P)) {
+            this.showDialog(player.x, player.y, "");
+        }
+
+        // Play animations 
+        if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
+            player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
+        } else {
+            player.animations.stop("walk");
+        }
     }
 };
