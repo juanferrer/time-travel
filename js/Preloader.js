@@ -22,7 +22,7 @@ gameControl.Preloader.prototype = {
         this.load.image("platform", "assets/platform.png");
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "assets/tilemap.png");
-        this.load.nineSlice("dialog", "assets/dialog.png", 15, 45, 15, 30);
+        this.load.nineSlice("dialog", "assets/dialog.png", 15, 54, 15, 30);
 
         // Sounds
         //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");

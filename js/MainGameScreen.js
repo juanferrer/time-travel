@@ -25,11 +25,16 @@ gameControl.MainGameScreen = function(game) {
         }
     },
 
-    this.showDialog = function(x, y, text) {
-        this.dialog.resize(300, 100);
+    this.showDialog = function(text) {
+        this.dialog.resize((text.length * 16) + 20, 80);
         this.dialog.x = player.x;
         this.dialog.y = player.y - 80;
         this.dialog.visible = true;
+
+        let numberOfLines = parseInt(text.length / 20);
+
+        this.dialogText.text = text;
+        this.dialogText.position.y = -numberOfLines * 30;
     },
 
     this.hideDialog = function() {
@@ -65,6 +70,7 @@ gameControl.MainGameScreen.prototype = {
       
         this.dialogText = game.add.text(0, 0, "Some text to test", {font: "40px 'VT323'", fill: "#000000"});
         this.dialog.addChild(this.dialogText);
+        this.dialogText.position.x = 10;
 
         /*let platformsNumber = 1;
 
@@ -198,7 +204,7 @@ gameControl.MainGameScreen.prototype = {
 
         // Debug
         if (game.input.keyboard.isDown(Phaser.Keyboard.P)) {
-            this.showDialog(player.x, player.y, "");
+            this.showDialog("This is a test");
         }
 
         // Play animations 
