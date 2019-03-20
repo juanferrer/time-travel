@@ -100,6 +100,7 @@ gameControl.MainGameScreen = function (game) {
         let lines = this.splitIntoLines(text, lineSize);
         let finalLineLength = lines.reduce((a, b) => { return a.length > b.length ? a : b; }).length;
         text = lines.join("\n");
+        text[text.length - 1] = "";
 
         this.dialog.resize((finalLineLength * 16) + 20, (numberOfLines * 40) + 20);
         this.dialog.visible = true;
