@@ -19,7 +19,31 @@ gameControl.MainGameScreen = function (game) {
     this.tilesX = 100;
     this.tilesY = 15;
 
+    this.dialogs = {
+        nextStepCounterTime: 3,
+        move: {
+            text: "Use Left Arrow and Right Arrow to move",
+            counter: -1,
+            completed: false
+        },
+        jump: {
+            text: "Press Space to jump",
+            counter: -1,
+            completed: false
+        },
+        slow: {
+            text: "Press D to slow down time",
+            counter: -1,
+            completed: false
+        },
+        stop: {
+            text: "Press S to stop time",
+            counter: -1,
+            completed: false
+        }
+    };
 
+    /** Handle collision of player with objects */
     this.collisionHandler = function () {
         if (this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
             this.playerInAir = false;
@@ -28,6 +52,12 @@ gameControl.MainGameScreen = function (game) {
         }
     };
 
+    /**
+     * Split a text into an array of lines of a specified length
+     * @param {string} text
+     * @param {number} lineLength
+     * @returns {string[]}
+     */
     this.splitIntoLines = function (text, lineLength) {
         let words = text.split(" ");
         let lines = [""];
@@ -45,6 +75,25 @@ gameControl.MainGameScreen = function (game) {
         return lines;
     };
 
+    /** Find next dialog that has not been displayed and prepare it for display */
+    this.prepareNextDialog = function () {
+        let dialogs = ["move", "jump", "slow", "stop"];
+        for (let i = 0; i < dialogs.length; ++i) {
+            if (!this.dialogs[dialogs[i]].completed) {
+                this.hideDialog();
+                this.dialogs[dialogs[i]].completed = true;
+                if (i < dialogs.length - 1) {
+                    this.dialogs[dialogs[i + 1]].counter = this.dialogs.nextStepCounterTime;
+                }
+                return;
+            }
+        }
+    };
+
+    /**
+     * Show the dialog with the specified text
+     * @param {string} text
+     */
     this.showDialog = function (text) {
         let lineSize = 15;
         let numberOfLines = Math.round(text.length / lineSize);
@@ -52,15 +101,14 @@ gameControl.MainGameScreen = function (game) {
         let finalLineLength = lines.reduce((a, b) => { return a.length > b.length ? a : b; }).length;
         text = lines.join("\n");
 
-        this.dialog.resize((Math.min(text.length, finalLineLength) * 16) + 20, (numberOfLines * 50) + 20);
-        this.dialog.x = player.x;
-        this.dialog.y = player.y - 20;
+        this.dialog.resize((finalLineLength * 16) + 20, (numberOfLines * 40) + 20);
         this.dialog.visible = true;
 
         this.dialogText.text = text;
-        this.dialogText.position.y = -(15 + numberOfLines * 4);
+        //this.dialogText.position.y = 0;
     };
 
+    /** Hide the dialog */
     this.hideDialog = function () {
         this.dialog.visible = false;
     };
@@ -88,12 +136,13 @@ gameControl.MainGameScreen.prototype = {
         player = this.add.sprite(5, 700, "player");
         player.anchor.setTo(0.5, 0.5);
 
-        this.dialog = this.add.nineSlice(player.x, player.y - 60, "dialog", null, 100, 70);
+        this.dialog = this.add.nineSlice(0, 0, "dialog", null, 100, 70);
         this.dialog.visible = false;
         this.dialog.anchor.setTo(0, 1);
 
         this.dialogText = game.add.text(0, 0, "Some text to test", { font: "40px 'VT323'", fill: "#000000" });
         this.dialog.addChild(this.dialogText);
+        player.addChild(this.dialog);
         this.dialogText.anchor.setTo(0, 1);
         this.dialogText.position.x = 10;
 
@@ -119,12 +168,12 @@ gameControl.MainGameScreen.prototype = {
         player.animations.add("inAir", [5]);
         player.animations.add("land", [5, 6, 7]);
 
-        player.events.onAnimationComplete.add((that) => {
+        player.events.onAnimationComplete.add(() => {
             // Check what animation was playing and play what should go next
             if (player.animations.currentAnim.name === "jump") {
                 player.animations.play("inAir", this.jumpFPS / this.time.slowMotion);
             }
-        }, this);
+        });
 
         this.physics.enable(player, Phaser.Physics.ARCADE);
         this.camera.follow(player, null, 0.05, 0.05);
@@ -132,6 +181,9 @@ gameControl.MainGameScreen.prototype = {
         player.body.collideWorldBounds = true;
         player.body.gravity.y = 2000;
         player.body.maxVelocity.y = 2000;
+        this.dialog.body.allowGravity = false;
+        this.dialog.position.y = -20;
+        this.dialogText.body.allowGravity = false;
 
         player.body.setSize(60, 75);
 
@@ -152,11 +204,26 @@ gameControl.MainGameScreen.prototype = {
         jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
         stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
+
+        // Prepare for the start
+        this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
     },
 
     update: function () {
         // Reset bools
         this.playerWalking = false;
+
+        // Update dialog counters
+        for (let key in this.dialogs) {
+            if (this.dialogs[key].counter > 0) {
+                let object = this.dialogs[key];
+                object.counter -= this.time.physicsElapsed;
+                if (object.counter < 0) {
+                    this.showDialog(object.text);
+                    object.counter = -1;
+                }
+            }
+        }
 
         // Update cooldowns
         if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
@@ -185,17 +252,35 @@ gameControl.MainGameScreen.prototype = {
         player.body.velocity.x = 0;
 
         // Check input
-        if (cursors.left.isDown) {
-            player.body.velocity.x = -300;
-            this.playerWalking = true;
-            if (player.scale.x > 0) player.scale.x *= -1;
-        } else if (cursors.right.isDown) {
-            player.body.velocity.x = 300;
-            this.playerWalking = true;
-            if (player.scale.x < 0) player.scale.x *= -1;
+        if (cursors.left.isDown || cursors.right.isDown) {
+            // Prepare next dialog
+            if (!this.dialogs.move.completed) {
+                this.prepareNextDialog();
+            }
+
+            if (cursors.left.isDown) {
+                player.body.velocity.x = -300;
+                this.playerWalking = true;
+                if (player.scale.x > 0) {
+                    player.scale.x *= -1;
+                    this.dialog.scale.x *= -1;
+                }
+            } else if (cursors.right.isDown) {
+                player.body.velocity.x = 300;
+                this.playerWalking = true;
+                if (player.scale.x < 0) {
+                    player.scale.x *= -1;
+                    this.dialog.scale.x *= -1;
+                }
+            }
         }
 
         if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+            // Prepare next dialog
+            if (!this.dialogs.jump.completed) {
+                this.prepareNextDialog();
+            }
+
             player.body.velocity.y = -600;
             player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
             this.playerInAir = true;
@@ -203,16 +288,24 @@ gameControl.MainGameScreen.prototype = {
 
         // Handle abilities
         if (stopButton.isDown) {
+            if (!this.dialogs.stop.completed) {
+                this.prepareNextDialog();
+            }
             if (player.stopCD <= 0) {
                 player.stopCD = player.stopCDTime;
                 player.stopTimer = player.stopTime;
                 this.isTimeStopped = true;
+                // Prepare next dialog
             }
+
         } else {
             this.isTimeStopped = false;
         }
 
         if (slowButton.isDown) {
+            if (!this.dialogs.slow.completed) {
+                this.prepareNextDialog();
+            }
             // Player is pressing slow down
             // TODO: Slow down over time
             if (player.slowTimer <= 0 && player.slowCD <= 0) {
