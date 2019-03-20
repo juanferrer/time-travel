@@ -1,4 +1,7 @@
-gameControl.MainGameScreen = function(game) {
+/* eslint-disable no-global-assign */
+/* globals cursors, jumpButton, slowButton, stopButton, Phaser, game, debug, gameControl, player */
+
+gameControl.MainGameScreen = function (game) {
     this.map;
     this.bgLayer;
     this.floorLayer;
@@ -17,32 +20,53 @@ gameControl.MainGameScreen = function(game) {
     this.tilesY = 15;
 
 
-    this.collisionHandler = function() {
+    this.collisionHandler = function () {
         if (this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
             this.playerInAir = false;
             player.animations.stop("inAir");
             player.animations.play("land", this.jumpFPS / this.time.slowMotion);
         }
-    },
+    };
 
-    this.showDialog = function(text) {
-        this.dialog.resize((text.length * 16) + 20, 80);
+    this.splitIntoLines = function (text, lineLength) {
+        let words = text.split(" ");
+        let lines = [""];
+        let lineIndex = 0;
+
+        words.forEach(word => {
+            lines[lineIndex] += word;
+            if (lines[lineIndex].length > lineLength) {
+                ++lineIndex;
+                lines[lineIndex] = "";
+            } else {
+                lines[lineIndex] += " ";
+            }
+        });
+        return lines;
+    };
+
+    this.showDialog = function (text) {
+        let lineSize = 15;
+        let numberOfLines = Math.round(text.length / lineSize);
+        let lines = this.splitIntoLines(text, lineSize);
+        let finalLineLength = lines.reduce((a, b) => { return a.length > b.length ? a : b; }).length;
+        text = lines.join("\n");
+
+        this.dialog.resize((Math.min(text.length, finalLineLength) * 16) + 20, (numberOfLines * 50) + 20);
         this.dialog.x = player.x;
-        this.dialog.y = player.y - 80;
+        this.dialog.y = player.y - 20;
         this.dialog.visible = true;
 
-        let numberOfLines = parseInt(text.length / 20);
-
         this.dialogText.text = text;
-        this.dialogText.position.y = -numberOfLines * 30;
-    },
+        this.dialogText.position.y = -(15 + numberOfLines * 4);
+    };
 
-    this.hideDialog = function() {
+    this.hideDialog = function () {
         this.dialog.visible = false;
-    }
+    };
 };
 
-gameControl.MainGameScreen.prototype = {	
+gameControl.MainGameScreen.prototype = {
     create: function () {
         debug.log("Main game screen");
 
@@ -66,10 +90,11 @@ gameControl.MainGameScreen.prototype = {
 
         this.dialog = this.add.nineSlice(player.x, player.y - 60, "dialog", null, 100, 70);
         this.dialog.visible = false;
-        this.dialog.anchor.setTo(0, 0.5);
-      
-        this.dialogText = game.add.text(0, 0, "Some text to test", {font: "40px 'VT323'", fill: "#000000"});
+        this.dialog.anchor.setTo(0, 1);
+
+        this.dialogText = game.add.text(0, 0, "Some text to test", { font: "40px 'VT323'", fill: "#000000" });
         this.dialog.addChild(this.dialogText);
+        this.dialogText.anchor.setTo(0, 1);
         this.dialogText.position.x = 10;
 
         /*let platformsNumber = 1;
@@ -91,7 +116,7 @@ gameControl.MainGameScreen.prototype = {
         // Add animations
         player.animations.add("walk", [1, 2]);
         player.animations.add("jump", [3, 4, 5]);
-        player.animations.add("inAir", [5]);       
+        player.animations.add("inAir", [5]);
         player.animations.add("land", [5, 6, 7]);
 
         player.events.onAnimationComplete.add((that) => {
@@ -127,11 +152,11 @@ gameControl.MainGameScreen.prototype = {
         jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
         stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
-    },	
+    },
 
     update: function () {
         // Reset bools
-        this.playerWalking = false;    
+        this.playerWalking = false;
 
         // Update cooldowns
         if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
@@ -157,8 +182,8 @@ gameControl.MainGameScreen.prototype = {
         //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
         this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
         this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
-        player.body.velocity.x = 0;	
-    
+        player.body.velocity.x = 0;
+
         // Check input
         if (cursors.left.isDown) {
             player.body.velocity.x = -300;
@@ -168,8 +193,8 @@ gameControl.MainGameScreen.prototype = {
             player.body.velocity.x = 300;
             this.playerWalking = true;
             if (player.scale.x < 0) player.scale.x *= -1;
-        } 
-        
+        }
+
         if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
             player.body.velocity.y = -600;
             player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
@@ -178,7 +203,7 @@ gameControl.MainGameScreen.prototype = {
 
         // Handle abilities
         if (stopButton.isDown) {
-            if  (player.stopCD <= 0) {
+            if (player.stopCD <= 0) {
                 player.stopCD = player.stopCDTime;
                 player.stopTimer = player.stopTime;
                 this.isTimeStopped = true;
@@ -207,7 +232,7 @@ gameControl.MainGameScreen.prototype = {
             this.showDialog("This is a test");
         }
 
-        // Play animations 
+        // Play animations
         if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
             player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
         } else {
