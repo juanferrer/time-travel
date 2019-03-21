@@ -34,6 +34,9 @@ gameControl.MainGameScreen = function (game) {
     this.tilesX = 100;
     this.tilesY = 15;
 
+    this.gameTime = 0;
+    this.rewindPositions = [];
+
     this.dialogs = {
         nextStepCounterTime: 3,
         move: {
@@ -200,6 +203,7 @@ gameControl.MainGameScreen.prototype = {
         player.animations.add("jump", [3, 4, 5]);
         player.animations.add("inAir", [5]);
         player.animations.add("land", [5, 6, 7]);
+        player.animations.add("disappear", [8, 9, 10, 11, 12, 0]);
 
         player.events.onAnimationComplete.add(() => {
             // Check what animation was playing and play what should go next
@@ -243,6 +247,9 @@ gameControl.MainGameScreen.prototype = {
     },
 
     update: function () {
+        // Increase time
+        this.gameTime += this.time.physicsElapsed;
+
         // Reset bools
         this.playerWalking = false;
 
@@ -326,11 +333,15 @@ gameControl.MainGameScreen.prototype = {
             if (player.cd <= 0) {
                 if (playerGhost.visible) {
                     // Send player to backtrack position
-                    player.position.x = playerGhost.position.x;
-                    player.position.y = playerGhost.position.y;
-                    player.scale.x = playerGhost.scale.x;
-                    playerGhost.visible = false;
+                    player.animations.play("disappear");
                     player.cd = player.cdTime;
+                    setTimeout(() => {
+                        player.position.x = playerGhost.position.x;
+                        player.position.y = playerGhost.position.y;
+                        player.scale.x = playerGhost.scale.x;
+                        this.hideDialog();
+                        playerGhost.visible = false;
+                    }, 80);
                 } else {
                     // Set backtrack point
                     playerGhost.position.x = player.position.x;
