@@ -63,15 +63,18 @@ gameControl.MainGameScreen = function (game) {
         let lines = [""];
         let lineIndex = 0;
 
-        words.forEach(word => {
+        for (let i = 0; i < words.length; ++i) {
+            let word = words[i];
             lines[lineIndex] += word;
             if (lines[lineIndex].length > lineLength) {
                 ++lineIndex;
-                lines[lineIndex] = "";
+                if (i < words.length - 1) {
+                    lines[lineIndex] = "";
+                }
             } else {
                 lines[lineIndex] += " ";
             }
-        });
+        };
         return lines;
     };
 
@@ -96,17 +99,15 @@ gameControl.MainGameScreen = function (game) {
      */
     this.showDialog = function (text) {
         let lineSize = 15;
-        let numberOfLines = Math.round(text.length / lineSize);
         let lines = this.splitIntoLines(text, lineSize);
         let finalLineLength = lines.reduce((a, b) => { return a.length > b.length ? a : b; }).length;
         text = lines.join("\n");
-        text[text.length - 1] = "";
 
-        this.dialog.resize((finalLineLength * 16) + 20, (numberOfLines * 40) + 20);
+        this.dialog.resize((finalLineLength * 16) + 20, (lines.length * 50) + 20);
         this.dialog.visible = true;
 
         this.dialogText.text = text;
-        //this.dialogText.position.y = 0;
+        this.dialogText.position.y = (-53 * lines.length) - 8;
     };
 
     /** Hide the dialog */
@@ -144,7 +145,7 @@ gameControl.MainGameScreen.prototype = {
         this.dialogText = game.add.text(0, 0, "Some text to test", { font: "40px 'VT323'", fill: "#000000" });
         this.dialog.addChild(this.dialogText);
         player.addChild(this.dialog);
-        this.dialogText.anchor.setTo(0, 1);
+        this.dialogText.anchor.setTo(0, 0);
         this.dialogText.position.x = 10;
 
         /*let platformsNumber = 1;
