@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals cursors, jumpButton, slowButton, stopButton, Phaser, game, debug, gameControl, player */
+/* globals Phaser, game, debug, gameControl, player, playerGhost */
 
 gameControl.MainGameScreen = function (game) {
     this.map;
@@ -8,12 +8,27 @@ gameControl.MainGameScreen = function (game) {
     this.platformLayer;
     this.dialog;
     this.dialogText;
+    this.tubeFilling;
+    this.slowTube;
+    this.stopTube;
+    this.rewindTube;
+    this.portalTube;
+
+    this.tubeFillingMaxY = 200;
 
     // Player animation info
     this.playerWalking;
     this.playerInAir;
     this.jumpFPS;
     this.walkFPS;
+
+    // Controls
+    this.cursors;
+    this.jumpButton;
+    this.backtrackButton;
+    this.slowButton;
+    this.stopButton;
+    this.rewindButton;
 
     this.tileSize = 60;
     this.tilesX = 100;
@@ -74,7 +89,7 @@ gameControl.MainGameScreen = function (game) {
             } else {
                 lines[lineIndex] += " ";
             }
-        };
+        }
         return lines;
     };
 
@@ -137,6 +152,10 @@ gameControl.MainGameScreen.prototype = {
 
         player = this.add.sprite(5, 700, "player");
         player.anchor.setTo(0.5, 0.5);
+        playerGhost = this.add.sprite(5, 700, "player");
+        playerGhost.anchor.setTo(0.5, 0.5);
+        playerGhost.alpha = 0.5;
+        playerGhost.visible = false;
 
         this.dialog = this.add.nineSlice(0, 0, "dialog", null, 100, 70);
         this.dialog.visible = false;
@@ -147,6 +166,18 @@ gameControl.MainGameScreen.prototype = {
         player.addChild(this.dialog);
         this.dialogText.anchor.setTo(0, 0);
         this.dialogText.position.x = 10;
+
+        this.tubeFilling = this.add.nineSlice(0, 0, "tubeFilling", null, 100, 70);
+        this.tubeFilling.fixedToCamera = true;
+        this.tubeFilling.resize(200, 60);
+        this.tubeFilling.angle = -90;
+        this.tubeFilling.cameraOffset = { x: 10, y: 210, type: 25 };
+        this.tubeFilling.alpha = 0.7;
+
+        this.slowTube = this.add.nineSlice(0, 0, "tube", null, 100, 70);
+        this.slowTube.fixedToCamera = true;
+        this.slowTube.resize(60, 200);
+        this.slowTube.cameraOffset = { x: 10, y: 10, type: 25 };
 
         /*let platformsNumber = 1;
 
@@ -190,10 +221,8 @@ gameControl.MainGameScreen.prototype = {
         player.body.setSize(60, 75);
 
         // Player cooldowns
-        player.slowCD = 0;
-        player.slowCDTime = 5;
-        player.stopCD = 0;
-        player.stopCDTime = 5;
+        player.cd = 0;
+        player.cdTime = 5;
 
         // Player ability timers
         player.slowTimer = 0;
@@ -202,10 +231,12 @@ gameControl.MainGameScreen.prototype = {
         this.isTimeStopped = false;
 
         // Set controls
-        cursors = this.input.keyboard.createCursorKeys();
-        jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
-        stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.jumpButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        this.backtrackButton = this.input.keyboard.addKey(Phaser.Keyboard.A);
+        this.slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
+        this.stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
+        this.rewindButton = this.input.keyboard.addKey(Phaser.Keyboard.F);
 
         // Prepare for the start
         this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
@@ -227,9 +258,11 @@ gameControl.MainGameScreen.prototype = {
             }
         }
 
-        // Update cooldowns
-        if (player.stopCD > 0) player.stopCD -= this.time.physicsElapsed;
-        if (player.slowCD > 0) player.slowCD -= this.time.physicsElapsed;
+        // Update cooldown
+        if (player.cd > 0) player.cd -= this.time.physicsElapsed;
+
+        // Update tube fillings
+        this.tubeFilling.resize(Math.max(200 * ((player.cdTime - player.cd) / player.cdTime), 30), 60);
 
         // Update timers
         if (player.slowTimer > 0) {
@@ -254,20 +287,20 @@ gameControl.MainGameScreen.prototype = {
         player.body.velocity.x = 0;
 
         // Check input
-        if (cursors.left.isDown || cursors.right.isDown) {
+        if (this.cursors.left.isDown || this.cursors.right.isDown) {
             // Prepare next dialog
             if (!this.dialogs.move.completed) {
                 this.prepareNextDialog();
             }
 
-            if (cursors.left.isDown) {
+            if (this.cursors.left.isDown) {
                 player.body.velocity.x = -300;
                 this.playerWalking = true;
                 if (player.scale.x > 0) {
                     player.scale.x *= -1;
                     this.dialog.scale.x *= -1;
                 }
-            } else if (cursors.right.isDown) {
+            } else if (this.cursors.right.isDown) {
                 player.body.velocity.x = 300;
                 this.playerWalking = true;
                 if (player.scale.x < 0) {
@@ -277,7 +310,7 @@ gameControl.MainGameScreen.prototype = {
             }
         }
 
-        if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+        if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
             // Prepare next dialog
             if (!this.dialogs.jump.completed) {
                 this.prepareNextDialog();
@@ -289,12 +322,34 @@ gameControl.MainGameScreen.prototype = {
         }
 
         // Handle abilities
-        if (stopButton.isDown) {
+        if (this.backtrackButton.isDown) {
+            if (player.cd <= 0) {
+                if (playerGhost.visible) {
+                    // Send player to backtrack position
+                    player.position.x = playerGhost.position.x;
+                    player.position.y = playerGhost.position.y;
+                    player.scale.x = playerGhost.scale.x;
+                    playerGhost.visible = false;
+                    player.cd = player.cdTime;
+                } else {
+                    // Set backtrack point
+                    playerGhost.position.x = player.position.x;
+                    playerGhost.position.y = player.position.y;
+                    playerGhost.scale.x = player.scale.x;
+                    playerGhost.visible = true;
+                    player.cd = player.cdTime / 10;
+                }
+            }
+        } else {
+            //
+        }
+
+        if (this.stopButton.isDown) {
             if (!this.dialogs.stop.completed) {
                 this.prepareNextDialog();
             }
-            if (player.stopCD <= 0) {
-                player.stopCD = player.stopCDTime;
+            if (player.cd <= 0) {
+                player.cd = player.cdTime;
                 player.stopTimer = player.stopTime;
                 this.isTimeStopped = true;
                 // Prepare next dialog
@@ -304,14 +359,14 @@ gameControl.MainGameScreen.prototype = {
             this.isTimeStopped = false;
         }
 
-        if (slowButton.isDown) {
+        if (this.slowButton.isDown) {
             if (!this.dialogs.slow.completed) {
                 this.prepareNextDialog();
             }
             // Player is pressing slow down
             // TODO: Slow down over time
-            if (player.slowTimer <= 0 && player.slowCD <= 0) {
-                player.slowCD = player.slowCDTime;
+            if (player.slowTimer <= 0 && player.cd <= 0) {
+                player.cd = player.cdTime;
                 player.slowTimer = player.slowTime;
                 this.time.slowMotion = 3.0;
                 this.time.desiredFps = 180;

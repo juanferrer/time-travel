@@ -1,11 +1,13 @@
-gameControl.Preloader = function(game) {
+/* globals gameControl, game, debug, Phaser, PhaserNineSlice */
+
+gameControl.Preloader = function (game) {
     this.preloadBar = null;
     this.titleText = null;
     this.ready = false;
 };
 
 gameControl.Preloader.prototype = {
-    
+
     preload: function () {
         // Load plugins
         game.plugins.add(PhaserNineSlice.Plugin);
@@ -15,7 +17,7 @@ gameControl.Preloader.prototype = {
         this.load.setPreloadSprite(this.preloadBar);
         this.titleText = this.add.image(this.world.centerX, this.world.centerY - 220, "titleImage");
         this.titleText.anchor.setTo(0.5, 0.5);
-        
+
         // Images
         this.load.image("titleScreen", "assets/TitleBG.png");
         this.load.spritesheet("player", "assets/detective.png", 70, 80, 8);
@@ -23,7 +25,8 @@ gameControl.Preloader.prototype = {
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "assets/tilemap.png");
         this.load.nineSlice("dialog", "assets/dialog.png", 15, 54, 15, 30);
-
+        this.load.nineSlice("tube", "assets/tube.png", 36);
+        this.load.nineSlice("tubeFilling", "assets/tubeFilling.png", 20);
         // Sounds
         //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");
     },
@@ -34,7 +37,7 @@ gameControl.Preloader.prototype = {
     },
 
     update: function () {
-           this.ready = true;
+        this.ready = true;
         this.state.start("StartScreen"); //when create function is complete go to the start screen
     }
 };
