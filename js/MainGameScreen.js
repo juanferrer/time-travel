@@ -96,14 +96,61 @@ gameControl.MainGameScreen = function () {
     };
 
     this.openStairsDoor = function (player, door) {
-        if (!door.isOpen && !door.isLocked) {
-            door.animations.play("open");
-            door.isOpen = true;
-            //door.animations.play("open");
-            setTimeout((door) => {
-                door.animations.play("close");
-                door.isOpen = false;
-            }, 3000, door);
+        door.animations.play("open");
+        door.isOpen = true;
+        //door.animations.play("open");
+        setTimeout((door) => {
+            door.animations.play("close");
+            door.isOpen = false;
+        }, 3000, door);
+    };
+
+    this.goThroughStairsDoor = function (player, door) {
+        if (!door.isLocked) {
+            if (!door.isOpen) {
+                this.openStairsDoor(player, door);
+            }
+
+            // Find the doors that are above and below this one
+            let doors = this.stairsDoors.children;
+            let doorAbove, doorBelow;
+            for (let i = 0; i < doors.length; ++i) {
+                if (doors[i].position.x === door.position.x && doors[i].position.y !== door.position.y) {
+                    // A door that is in the same X as this door, but is not this one
+                    if (doors[i].position.y < door.position.y) {
+                        // Door is above current door
+                        if (doorAbove && doorAbove.position) {
+                            if (doors[i].position.y > doorAbove.position.y) {
+                                doorAbove = doors[i];
+                            }
+                        } else {
+                            doorAbove = doors[i];
+                        }
+                    } else if (doors[i].position.y > door.position.y) {
+                        // Door is below current door
+                        if (doorBelow && doorBelow.position) {
+                            if (doors[i].position.y < doorBelow.position.y) {
+                                doorBelow = doors[i];
+                            }
+                        } else {
+                            doorBelow = doors[i];
+                        }
+                    }
+                }
+            }
+
+            if (this.cursors.up.isDown && doorAbove) {
+                player.position.x = doorAbove.position.x + doorAbove.width / 2;
+                player.position.y = doorAbove.position.y + doorAbove.height / 2;
+                this.openStairsDoor(player, doorAbove);
+            } else if (this.cursors.down.isDown && doorBelow) {
+                player.position.x = doorBelow.position.x + doorBelow.width / 2;
+                player.position.y = doorBelow.position.y + doorBelow.height / 2;
+                this.openStairsDoor(player, doorBelow);
+            } else {
+                // Do nothing, player stays in this floor
+            }
+
         }
     };
 
@@ -187,14 +234,14 @@ gameControl.MainGameScreen.prototype = {
         this.floorLayer = this.map.createLayer("Floor");
         this.doors = game.add.group();
         this.doors.enableBody = true;
-        this.map.createFromObjects("Doors", 13, "doors", 0, true, false, this.doors);
+        this.map.createFromObjects("Doors", 16, "doors", 0, true, false, this.doors);
 
         this.doors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4], 20);
         this.doors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0], 20);
 
         this.stairsDoors = game.add.group();
         this.stairsDoors.enableBody = true;
-        this.map.createFromObjects("StairsDoors", 19, "stairsDoors", 0, true, false, this.stairsDoors);
+        this.map.createFromObjects("StairsDoors", 22, "stairsDoors", 0, true, false, this.stairsDoors);
 
         this.stairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4], 20);
         this.stairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0], 20);
@@ -301,6 +348,7 @@ gameControl.MainGameScreen.prototype = {
         this.slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
         this.stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
 
+
         // Prepare collisions
         this.map.setCollisionBetween(1, 999, true, "Floor");
 
@@ -380,13 +428,12 @@ gameControl.MainGameScreen.prototype = {
             }
         }
         if (this.cursors.up.isDown || this.cursors.down.isDown) {
-            // Check if we're near a stairs door before acting
-            this.physics.arcade.overlap(player, this.stairsDoors, this.openStairsDoor, null, this);
 
-            // Find the doors that are above and below this one
-            this.stairsDoors.forEach(() => {
-
-            });
+            if ((this.cursors.up.justPressed() || this.cursors.up.duration > 1000) ||
+                (this.cursors.down.justPressed() || this.cursors.down.duration > 1000)) {
+                // Check if we're near a stairs door before acting
+                this.physics.arcade.overlap(player, this.stairsDoors, this.goThroughStairsDoor, null, this);
+            }
         }
 
         if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
