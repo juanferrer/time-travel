@@ -8,16 +8,17 @@ gameControl.MainGameScreen = function () {
     this.map;
     this.bgLayer;
     this.floorLayer;
-    this.platformLayer;
+    this.doors;
     this.dialog;
     this.dialogText;
     this.tubeFilling;
     this.slowTube;
     this.stopTube;
-    this.rewindTube;
     this.portalTube;
 
     this.tubeFillingMaxY = 200;
+
+    this.trees = [];
 
     // Player animation info
     this.playerWalking;
@@ -31,14 +32,12 @@ gameControl.MainGameScreen = function () {
     this.backtrackButton;
     this.slowButton;
     this.stopButton;
-    this.rewindButton;
 
     this.tileSize = 60;
-    this.tilesX = 100;
-    this.tilesY = 15;
+    this.tilesX = 60;
+    this.tilesY = 100;
 
     this.gameTime = 0;
-    this.rewindPositions = [];
 
     this.dialogs = {
         nextStepCounterTime: 3,
@@ -61,6 +60,16 @@ gameControl.MainGameScreen = function () {
             text: "Press S to stop time",
             counter: -1,
             completed: false
+        },
+        backtrack1: {
+            text: "Press A to set a backtrack point",
+            counter: -1,
+            completed: false
+        },
+        backtrack2: {
+            text: "Press A again to travel to backtrack point",
+            counter: -1,
+            completed: false
         }
     };
 
@@ -70,6 +79,18 @@ gameControl.MainGameScreen = function () {
             this.playerInAir = false;
             player.animations.stop("inAir");
             player.animations.play("land", this.jumpFPS / this.time.slowMotion);
+        }
+    };
+
+    this.openDoor = function (player, door) {
+        if (!door.isOpen) {
+            door.animations.play("open");
+            door.isOpen = true;
+            //door.animations.play("open");
+            setTimeout((door) => {
+                door.animations.play("close");
+                door.isOpen = false;
+            }, 3000, door);
         }
     };
 
@@ -101,7 +122,7 @@ gameControl.MainGameScreen = function () {
 
     /** Find next dialog that has not been displayed and prepare it for display */
     this.prepareNextDialog = function () {
-        let dialogs = ["move", "jump", "slow", "stop"];
+        let dialogs = ["move", "jump", "slow", "stop", "backtrack1", "backtrack2"];
         for (let i = 0; i < dialogs.length; ++i) {
             if (!this.dialogs[dialogs[i]].completed) {
                 this.hideDialog();
@@ -145,21 +166,25 @@ gameControl.MainGameScreen.prototype = {
         this.physics.arcade.gravity.y = 100;
 
         this.map = this.add.tilemap("level");
-        this.map.addTilesetImage("tileset", "tiles");
+        //this.map.addTilesetImage("trees", "trees");
+        this.map.addTilesetImage("walls", "walls");
+        this.map.addTilesetImage("door", "doors");
         game.stage.backgroundColor = "#FFAC5B";
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
-        this.platformLayer = this.map.createLayer("Platforms");
+        this.doors = game.add.group();
+        this.doors.enableBody = true;
+        this.map.createFromObjects("Doors", 15, "doors", 0, true, false, this.doors);
 
-        this.map.setCollisionBetween(2, 3, true, "Platforms");
-        this.map.setCollisionBetween(1, 2, true, "Floor");
+        this.doors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4], 20);
+        this.doors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0], 20);
 
         this.world.resize(this.tileSize * this.tilesX, this.tileSize * this.tilesY);
 
-        player = this.add.sprite(5, 700, "player");
-        player.anchor.setTo(0.5, 0.5);
+        player = this.add.sprite(200, 5500, "player");
+        player.anchor.setTo(0.5, 0);
         playerGhost = this.add.sprite(5, 700, "player");
-        playerGhost.anchor.setTo(0.5, 0.5);
+        playerGhost.anchor.setTo(0.5, 0);
         playerGhost.alpha = 0.5;
         playerGhost.visible = false;
 
@@ -185,17 +210,6 @@ gameControl.MainGameScreen.prototype = {
         this.slowTube.resize(60, 200);
         this.slowTube.cameraOffset = { x: 10, y: 10, type: 25 };
 
-        /*let platformsNumber = 1;
-
-        // Create assets on screen
-        platforms = [];
-        for (let i = 0; i < platformsNumber; ++i) {
-            platforms.push(this.add.sprite(50, 500, "platform"));
-            this.physics.enable(platform, Phaser.Physics.ARCADE);
-            platforms[i].body.immovable = true;
-            platforms[i].body.allow
-        }*/
-
         this.physics.enableGravity = false;
 
         this.walkFPS = 8;
@@ -206,16 +220,28 @@ gameControl.MainGameScreen.prototype = {
         player.animations.add("jump", [3, 4, 5]);
         player.animations.add("inAir", [5]);
         player.animations.add("land", [5, 6, 7]);
-        player.animations.add("disappear", [8, 9, 10, 11, 12, 0]);
+        player.animations.add("disappear", [8, 9, 10, 11, 12]);
 
         player.events.onAnimationComplete.add(() => {
             // Check what animation was playing and play what should go next
-            if (player.animations.currentAnim.name === "jump") {
-                player.animations.play("inAir", this.jumpFPS / this.time.slowMotion);
+            switch (player.animations.currentAnim.name) {
+                case "jump":
+                    player.animations.play("inAir", this.jumpFPS / this.time.slowMotion);
+                    break;
+                case "disappear":
+                    player.frame = 0;
+                    player.position.x = playerGhost.position.x;
+                    player.position.y = playerGhost.position.y;
+                    player.scale.x = playerGhost.scale.x;
+                    this.hideDialog();
+                    playerGhost.visible = false;
+                    break;
             }
         });
 
         this.physics.enable(player, Phaser.Physics.ARCADE);
+        this.camera.x = player.position.x;
+        this.camera.y = player.position.y;
         this.camera.follow(player, null, 0.05, 0.05);
 
         player.body.collideWorldBounds = true;
@@ -224,6 +250,10 @@ gameControl.MainGameScreen.prototype = {
         this.dialog.body.allowGravity = false;
         this.dialog.position.y = -20;
         this.dialogText.body.allowGravity = false;
+        this.doors.forEach((door) => {
+            door.body.allowGravity = false;
+            door.isOpen = false;
+        });
 
         player.body.setSize(60, 75);
 
@@ -243,7 +273,9 @@ gameControl.MainGameScreen.prototype = {
         this.backtrackButton = this.input.keyboard.addKey(Phaser.Keyboard.A);
         this.slowButton = this.input.keyboard.addKey(Phaser.Keyboard.D);
         this.stopButton = this.input.keyboard.addKey(Phaser.Keyboard.S);
-        this.rewindButton = this.input.keyboard.addKey(Phaser.Keyboard.F);
+
+        // Prepare collisions
+        this.map.setCollisionBetween(1, 999, true, "Floor");
 
         // Prepare for the start
         this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
@@ -293,7 +325,7 @@ gameControl.MainGameScreen.prototype = {
         // Physics
         //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
         this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
-        this.physics.arcade.collide(player, this.platformLayer, this.collisionHandler, null, this);
+        this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
         player.body.velocity.x = 0;
 
         // Check input
@@ -326,25 +358,24 @@ gameControl.MainGameScreen.prototype = {
                 this.prepareNextDialog();
             }
 
-            player.body.velocity.y = -600;
+            player.body.velocity.y = -800;
             player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
             this.playerInAir = true;
         }
 
         // Handle abilities
         if (this.backtrackButton.isDown) {
+            if (!this.dialogs.backtrack1.completed) {
+                this.prepareNextDialog();
+            } else if (this.dialogs.backtrack1.completed && !this.dialogs.backtrack2.completed) {
+                this.prepareNextDialog();
+            }
+
             if (player.cd <= 0) {
                 if (playerGhost.visible) {
                     // Send player to backtrack position
                     player.animations.play("disappear");
                     player.cd = player.cdTime;
-                    setTimeout(() => {
-                        player.position.x = playerGhost.position.x;
-                        player.position.y = playerGhost.position.y;
-                        player.scale.x = playerGhost.scale.x;
-                        this.hideDialog();
-                        playerGhost.visible = false;
-                    }, 80);
                 } else {
                     // Set backtrack point
                     playerGhost.position.x = player.position.x;
