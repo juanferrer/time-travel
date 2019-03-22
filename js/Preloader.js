@@ -1,6 +1,6 @@
 /* globals gameControl, game, debug, Phaser, PhaserNineSlice */
 
-gameControl.Preloader = function (game) {
+gameControl.Preloader = function () {
     this.preloadBar = null;
     this.titleText = null;
     this.ready = false;

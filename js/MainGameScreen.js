@@ -1,7 +1,10 @@
 /* eslint-disable no-global-assign */
 /* globals Phaser, game, debug, gameControl, player, playerGhost */
 
-gameControl.MainGameScreen = function (game) {
+/// <reference path="../typescript/phaser.d.ts" />
+/// <reference path="../typescript/phaser-nineslice.d.ts" />
+
+gameControl.MainGameScreen = function () {
     this.map;
     this.bgLayer;
     this.floorLayer;

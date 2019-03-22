@@ -1,6 +1,8 @@
+/* globals gameControl, debug */
+
 /// <reference path="../typescript/phaser.d.ts" />
 
-gameControl.StartScreen = function (game) {
+gameControl.StartScreen = function () {
     this.startBG;
     this.startPrompt;
 };
@@ -8,13 +10,13 @@ gameControl.StartScreen = function (game) {
 gameControl.StartScreen.prototype = {
     create: function () {
         debug.log("In start screen");
-        startBG = this.add.image(this.world.centerX, this.world.centerY, "titleScreen");
-        startBG.anchor.setTo(0.5, 0.5);
-        startBG.inputEnabled = true;
-        startBG.events.onInputDown.addOnce(this.startGame, this);
+        this.startBG = this.add.image(this.world.centerX, this.world.centerY, "titleScreen");
+        this.startBG.anchor.setTo(0.5, 0.5);
+        this.startBG.inputEnabled = true;
+        this.startBG.events.onInputDown.addOnce(this.startGame, this);
     },
 
-    startGame: function (pointer) {
+    startGame: function () {
         this.state.start("MainGameScreen");
     }
 };
