@@ -96,7 +96,7 @@ gameControl.MainGameScreen = function () {
     };
 
     this.openStairsDoor = function (player, door) {
-        if (!door.isOpen) {
+        if (!door.isOpen && !door.isLocked) {
             door.animations.play("open");
             door.isOpen = true;
             //door.animations.play("open");
@@ -382,6 +382,11 @@ gameControl.MainGameScreen.prototype = {
         if (this.cursors.up.isDown || this.cursors.down.isDown) {
             // Check if we're near a stairs door before acting
             this.physics.arcade.overlap(player, this.stairsDoors, this.openStairsDoor, null, this);
+
+            // Find the doors that are above and below this one
+            this.stairsDoors.forEach(() => {
+
+            });
         }
 
         if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
