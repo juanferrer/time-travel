@@ -10,6 +10,7 @@ gameControl.MainGameScreen = function () {
     this.floorLayer;
     this.doors;
     this.stairsDoors;
+    this.lockedStairsDoors;
     this.dialog;
     this.dialogText;
     this.tubeFilling;
@@ -17,15 +18,18 @@ gameControl.MainGameScreen = function () {
     this.stopTube;
     this.portalTube;
 
-    this.tubeFillingMaxY = 200;
+    this.keys;
+    this.enemy1Group;
+    this.enemy2Group;
 
-    this.trees = [];
+    this.tubeFillingMaxY = 200;
 
     // Player animation info
     this.playerWalking;
     this.playerInAir;
     this.jumpFPS;
     this.walkFPS;
+    this.doorFPS;
 
     // Controls
     this.cursors;
@@ -87,7 +91,6 @@ gameControl.MainGameScreen = function () {
         if (!door.isOpen && !door.isLocked) {
             door.animations.play("open");
             door.isOpen = true;
-            //door.animations.play("open");
             setTimeout((door) => {
                 door.animations.play("close");
                 door.isOpen = false;
@@ -96,62 +99,116 @@ gameControl.MainGameScreen = function () {
     };
 
     this.openStairsDoor = function (player, door) {
-        door.animations.play("open");
+        door.animations.play("open", this.doorFPS / this.time.slowMotion);
         door.isOpen = true;
-        //door.animations.play("open");
         setTimeout((door) => {
-            door.animations.play("close");
+            door.animations.play("close", this.doorFPS / this.time.slowMotion);
             door.isOpen = false;
         }, 3000, door);
     };
 
-    this.goThroughStairsDoor = function (player, door) {
-        if (!door.isLocked) {
-            if (!door.isOpen) {
-                this.openStairsDoor(player, door);
-            }
+    this.playerGoThroughStairs = function (callback, timer = 1000) {
+        player.visible = false;
+        setTimeout(() => {
+            player.visible = true;
+            if (callback) callback();
+        }, timer);
+    };
 
-            // Find the doors that are above and below this one
-            let doors = this.stairsDoors.children;
-            let doorAbove, doorBelow;
-            for (let i = 0; i < doors.length; ++i) {
-                if (doors[i].position.x === door.position.x && doors[i].position.y !== door.position.y) {
-                    // A door that is in the same X as this door, but is not this one
-                    if (doors[i].position.y < door.position.y) {
-                        // Door is above current door
-                        if (doorAbove && doorAbove.position) {
-                            if (doors[i].position.y > doorAbove.position.y) {
-                                doorAbove = doors[i];
-                            }
-                        } else {
+    this.goThroughStairsDoor = function (player, door) {
+        if (door.isLocked) {
+
+            if (player.keyCount === 0) {
+                // Door is locked and have no keys
+                this.showDialog("The door is locked... I should look around");
+                setTimeout(() => { this.hideDialog(); }, 2000);
+                return;
+            } else {
+                player.keyCount--;
+                door.isLocked = false;
+            }
+        }
+
+        if (!door.isOpen) {
+            this.openStairsDoor(player, door);
+        }
+
+        // Find the doors that are above and below this one
+        let doors = (this.stairsDoors.children).concat(this.lockedStairsDoors.children);
+        let doorAbove, doorBelow;
+        for (let i = 0; i < doors.length; ++i) {
+            if (doors[i].position.x === door.position.x && doors[i].position.y !== door.position.y) {
+                // A door that is in the same X as this door, but is not this one
+                if (doors[i].position.y < door.position.y) {
+                    // Door is above current door
+                    if (doorAbove && doorAbove.position) {
+                        if (doors[i].position.y > doorAbove.position.y) {
                             doorAbove = doors[i];
                         }
-                    } else if (doors[i].position.y > door.position.y) {
-                        // Door is below current door
-                        if (doorBelow && doorBelow.position) {
-                            if (doors[i].position.y < doorBelow.position.y) {
-                                doorBelow = doors[i];
-                            }
-                        } else {
+                    } else {
+                        doorAbove = doors[i];
+                    }
+                } else if (doors[i].position.y > door.position.y) {
+                    // Door is below current door
+                    if (doorBelow && doorBelow.position) {
+                        if (doors[i].position.y < doorBelow.position.y) {
                             doorBelow = doors[i];
                         }
+                    } else {
+                        doorBelow = doors[i];
                     }
                 }
             }
-
-            if (this.cursors.up.isDown && doorAbove) {
-                player.position.x = doorAbove.position.x + doorAbove.width / 2;
-                player.position.y = doorAbove.position.y + doorAbove.height / 2;
-                this.openStairsDoor(player, doorAbove);
-            } else if (this.cursors.down.isDown && doorBelow) {
-                player.position.x = doorBelow.position.x + doorBelow.width / 2;
-                player.position.y = doorBelow.position.y + doorBelow.height / 2;
-                this.openStairsDoor(player, doorBelow);
-            } else {
-                // Do nothing, player stays in this floor
-            }
-
         }
+
+        if (this.cursors.up.isDown && doorAbove) {
+            if (doorAbove.isLocked && player.keyCount === 0) {
+                // The other door is locked and have no keys
+                this.playerGoThroughStairs(() => {
+                    this.showDialog("The other door is locked... I should look around");
+                    setTimeout(() => { this.hideDialog(); }, 2000);
+                });
+                return;
+            } else {
+                if (doorAbove.isLocked && player.keyCount > 0) {
+                    player.keyCount--;
+                    doorAbove.isLocked = false;
+                }
+                this.playerGoThroughStairs(() => {
+                    player.position.x = doorAbove.position.x + doorAbove.width / 2;
+                    player.position.y = doorAbove.position.y + doorAbove.height / 2;
+                    this.openStairsDoor(player, doorAbove);
+                });
+            }
+        } else if (this.cursors.down.isDown && doorBelow) {
+            if (doorBelow.isLocked && player.keyCount === 0) {
+                // The other door is locked and have no keys
+                this.playerGoThroughStairs(() => {
+                    this.showDialog("The other door is locked... I should look around");
+                    setTimeout(() => { this.hideDialog(); }, 2000);
+                });
+                if (doorBelow.isLocked && player.keyCount > 0) {
+                    player.keyCount--;
+                    doorBelow.isLocked = false;
+                }
+                return;
+            } else {
+                this.playerGoThroughStairs(() => {
+
+                    player.position.x = doorBelow.position.x + doorBelow.width / 2;
+                    player.position.y = doorBelow.position.y + doorBelow.height / 2;
+                    this.openStairsDoor(player, doorBelow);
+                });
+            }
+        } else {
+            // Do nothing, player stays in this floor
+        }
+
+    };
+
+    this.grabKey = function (player, key) {
+        player.keyCount++;
+        key.kill();
     };
 
     /**
@@ -225,6 +282,7 @@ gameControl.MainGameScreen.prototype = {
         this.physics.startSystem(Phaser.Physics.ARCADE);
         this.physics.arcade.gravity.y = 100;
 
+        // Create all layers
         this.map = this.add.tilemap("level");
         //this.map.addTilesetImage("trees", "trees");
         this.map.addTilesetImage("walls", "walls");
@@ -235,17 +293,38 @@ gameControl.MainGameScreen.prototype = {
         this.floorLayer = this.map.createLayer("Floor");
         this.doors = game.add.group();
         this.doors.enableBody = true;
-        this.map.createFromObjects("Doors", 16, "doors", 0, true, false, this.doors);
+        this.map.createFromObjects("Doors", 10, "doors", 0, true, false, this.doors);
 
-        this.doors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4], 20);
-        this.doors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0], 20);
+        this.doors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
+        this.doors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
 
         this.stairsDoors = game.add.group();
         this.stairsDoors.enableBody = true;
-        this.map.createFromObjects("StairsDoors", 22, "stairsDoors", 0, true, false, this.stairsDoors);
+        this.map.createFromObjects("StairsDoors", 16, "stairsDoors", 0, true, false, this.stairsDoors);
 
-        this.stairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4], 20);
-        this.stairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0], 20);
+        this.stairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
+        this.stairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
+
+        this.lockedStairsDoors = game.add.group();
+        this.lockedStairsDoors.enableBody = true;
+        this.map.createFromObjects("LockedStairsDoors", 17, "stairsDoors", 0, true, false, this.lockedStairsDoors);
+
+        this.lockedStairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
+        this.lockedStairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
+
+        this.keys = game.add.group();
+        this.keys.enableBody = true;
+        this.map.createFromObjects("Keys", 54, "key", 0, true, false, this.keys);
+
+        this.enemy1Group = game.add.group();
+        this.enemy1Group.enableBody = true;
+        this.map.createFromObjects("Enemy1", 46, "enemy1", 0, true, false, this.enemy1Group);
+
+        this.enemy1Group.callAll("animations.add", "animations", "walk", [1, 2], 20);
+
+        this.enemy2Group = game.add.group();
+        this.enemy2Group.enableBody = true;
+        this.map.createFromObjects("Enemy2", 50, "enemy2", 0, true, false, this.enemy2Group);
 
         this.world.resize(this.tileSize * this.tilesX, this.tileSize * this.tilesY);
 
@@ -282,6 +361,7 @@ gameControl.MainGameScreen.prototype = {
 
         this.walkFPS = 8;
         this.jumpFPS = 20;
+        this.doorFPS = 20;
 
         // Add animations
         player.animations.add("walk", [1, 2]);
@@ -330,6 +410,13 @@ gameControl.MainGameScreen.prototype = {
             door.isLocked = false;
         });
 
+
+        this.lockedStairsDoors.forEach((door) => {
+            door.body.allowGravity = false;
+            door.isOpen = false;
+            door.isLocked = true;
+        });
+
         player.body.setSize(60, 75);
 
         // Player cooldowns
@@ -356,6 +443,7 @@ gameControl.MainGameScreen.prototype = {
         // Prepare for the start
         this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
         player.animations.play("walk");
+        player.keyCount = 0;
     },
 
     update: function () {
@@ -400,9 +488,18 @@ gameControl.MainGameScreen.prototype = {
         }
 
         // Physics
-        //this.physics.arcade.collide(player, platform, this.collisionHandler, null, this);
+
+        // Floor collisions
         this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
+        this.physics.arcade.collide(this.enemy1Group, this.floorLayer, this.collisionHandler, null, this);
+        this.physics.arcade.collide(this.enemy2Group, this.floorLayer, this.collisionHandler, null, this);
+        this.physics.arcade.collide(this.keys, this.floorLayer, this.collisionHandler, null, this);
+
+        // Player interaction
         this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
+        this.physics.arcade.overlap(player, this.keys, this.grabKey, null, this);
+        this.physics.arcade.overlap(player, this.enemy1Group, this.killPlayer, null, this);
+        this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
         player.body.velocity.x = 0;
 
         // Check input
@@ -417,14 +514,12 @@ gameControl.MainGameScreen.prototype = {
                 this.playerWalking = true;
                 if (player.scale.x > 0) {
                     player.scale.x *= -1;
-                    this.dialog.scale.x *= -1;
                 }
             } else if (this.cursors.right.isDown) {
                 player.body.velocity.x = 300;
                 this.playerWalking = true;
                 if (player.scale.x < 0) {
                     player.scale.x *= -1;
-                    this.dialog.scale.x *= -1;
                 }
             }
         }
@@ -434,6 +529,7 @@ gameControl.MainGameScreen.prototype = {
                 (this.cursors.down.justPressed() || this.cursors.down.duration > 1000)) {
                 // Check if we're near a stairs door before acting
                 this.physics.arcade.overlap(player, this.stairsDoors, this.goThroughStairsDoor, null, this);
+                this.physics.arcade.overlap(player, this.lockedStairsDoors, this.goThroughStairsDoor, null, this);
             }
         }
 
@@ -520,5 +616,8 @@ gameControl.MainGameScreen.prototype = {
                 player.animations.stop("walk");
             }
         }
+
+        // Update orientation of dialog
+        this.dialog.scale.x = player.scale.x;
     }
 };

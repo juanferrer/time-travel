@@ -24,6 +24,9 @@ gameControl.Preloader.prototype = {
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("wallpaper", "assets/wallpaper.png");
         this.load.image("walls", "assets/walls.png");
+        this.load.image("key", "assets/key.png");
+        this.load.spritesheet("enemy1", "assets/enemy1.png", 70, 80, 3);
+        this.load.spritesheet("enemy2", "assets/enemy2.png", 70, 80, 3);
         this.load.spritesheet("doors", "assets/door.png", 120, 120, 5);
         this.load.spritesheet("stairsDoors", "assets/stairsDoor.png", 120, 120, 5);
         //this.load.image("trees", "assets/trees.png");
