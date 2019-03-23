@@ -22,6 +22,7 @@ gameControl.Preloader.prototype = {
         this.load.image("titleScreen", "assets/TitleBG.png");
         this.load.spritesheet("player", "assets/detective.png", 70, 80, 13);
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.image("wallpaper", "assets/wallpaper.png");
         this.load.image("walls", "assets/walls.png");
         this.load.spritesheet("doors", "assets/door.png", 120, 120, 5);
         this.load.spritesheet("stairsDoors", "assets/stairsDoor.png", 120, 120, 5);

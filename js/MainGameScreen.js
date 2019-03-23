@@ -228,6 +228,7 @@ gameControl.MainGameScreen.prototype = {
         this.map = this.add.tilemap("level");
         //this.map.addTilesetImage("trees", "trees");
         this.map.addTilesetImage("walls", "walls");
+        this.map.addTilesetImage("wallpaper", "wallpaper", 120, 120);
         this.map.addTilesetImage("door", "doors");
         game.stage.backgroundColor = "#FFAC5B";
         this.bgLayer = this.map.createLayer("BG");
