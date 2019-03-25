@@ -37,7 +37,7 @@ gameControl.MainGameScreen = function () {
     this.woodStepSound;
     this.woodStepSlowSound;
 
-    this.stepWaitTime = 0.1;
+    this.stepWaitTime = 0.1666666;
     this.stepTimer = this.stepWaitTime + 1; // Make it greater then stepWaitTime so that is starts immediately
 
     // Controls
@@ -93,6 +93,7 @@ gameControl.MainGameScreen = function () {
             this.playerInAir = false;
             player.animations.stop("inAir");
             player.animations.play("land", this.jumpFPS / this.time.slowMotion);
+            this.playStepSound();
         }
     };
 
@@ -285,6 +286,15 @@ gameControl.MainGameScreen = function () {
     /** Hide the dialog */
     this.hideDialog = function () {
         this.dialog.visible = false;
+    };
+
+    this.playStepSound = function (position) {
+
+        if (this.time.slowMotion > 1){
+            this.woodStepSlowSound.play();
+        } else {
+            this.woodStepSound.play();
+        }
     };
 };
 
@@ -604,6 +614,9 @@ gameControl.MainGameScreen.prototype = {
                 player.cd = player.cdTime;
                 player.stopTimer = player.stopTime;
                 this.isTimeStopped = true;
+
+                // Also, stop current walk animation so that the slow animation plays
+                player.animations.stop("walk");
                 // Prepare next dialog
             }
 
@@ -637,18 +650,14 @@ gameControl.MainGameScreen.prototype = {
         // Play animations
         if (player.animations.currentAnim.name !== "disappear" || !player.animations.currentAnim.isPlaying) {
             if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
-                player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
+                player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
                 if (this.stepTimer > this.stepWaitTime) {
                     this.stepTimer = 0;
-                    if (this.time.slowMotion > 1){
-                        this.woodStepSlowSound.play();
-                    } else {
-                        this.woodStepSound.play();
-                    }
+                    this.playStepSound();
                 }
             } else {
                 this.stepTimer = 0;
-                //player.animations.stop("walk");
+                player.animations.stop("walk");
             }
         }
 
