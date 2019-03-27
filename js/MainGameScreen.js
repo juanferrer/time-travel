@@ -94,18 +94,18 @@ gameControl.MainGameScreen = function () {
             this.playerInAir = false;
             player.animations.stop("inAir");
             player.animations.play("land", this.jumpFPS / this.time.slowMotion);
-            this.playStepSound();
+            this.playSound("step");
         }
     };
 
     this.openDoor = function (player, door) {
         if (!door.isOpen && !door.isLocked) {
             door.animations.play("open", this.doorFPS / this.time.slowMotion);
-            this.openDoorSound.play();
+            this.playSound("openDoor");
             door.isOpen = true;
             setTimeout((door) => {
                 door.animations.play("close", this.doorFPS / this.time.slowMotion);
-                this.closeDoorSound.play();
+                this.playSound("closeDoor");
                 door.isOpen = false;
             }, 3000, door);
         }
@@ -113,19 +113,19 @@ gameControl.MainGameScreen = function () {
 
     this.openStairsDoor = function (player, door) {
         door.animations.play("open", this.doorFPS / this.time.slowMotion);
-        this.openDoorSound.play();
+        this.playSound("openDoor");
         door.isOpen = true;
         setTimeout((door) => {
             door.animations.play("close", this.doorFPS / this.time.slowMotion);
-            this.closeDoorSound.play();
+            this.playSound("closeDoor");
             door.isOpen = false;
         }, 3000, door);
     };
 
     this.playerGoThroughStairs = function (callback, timer = 1000) {
-        player.visible = false;
+        player.renderable = false;
         setTimeout(() => {
-            player.visible = true;
+            player.renderable = true;
             if (callback) callback();
         }, timer);
     };
@@ -294,7 +294,6 @@ gameControl.MainGameScreen = function () {
         this.dialog.visible = false;
     };
 
-<<<<<<< HEAD
     this.endGame = function () {
         // TODO: Calculate players's score
         // TODO: Send player's score
@@ -313,15 +312,31 @@ gameControl.MainGameScreen = function () {
         });
 
         this.state.start("MainGameScreen");
-=======
-    this.playStepSound = function (position) {
+    };
 
-        if (this.time.slowMotion > 1){
-            this.woodStepSlowSound.play();
+    this.playSound = function (type, position) {
+        if (this.time.slowMotion > 1) {
+            switch (type) {
+                case "step":
+                    this.woodStepSlowSound.play();
+                    break;
+                case "openDoor":
+                    // TODO
+                    break;
+            }
         } else {
-            this.woodStepSound.play();
+            switch (type) {
+                case "step":
+                    this.woodStepSound.play();
+                    break;
+                case "openDoor":
+                    this.openDoorSound.play();
+                    break;
+                case "closeDoor":
+                    this.closeDoorSound.play();
+                    break;
+            }
         }
->>>>>>> 4fad3033fb009bf9c1f4b3d51dd6de2a2a35a2fe
     };
 };
 
@@ -572,6 +587,11 @@ gameControl.MainGameScreen.prototype = {
                 this.prepareNextDialog();
             }
 
+            if (!player.renderable) {
+                player.body.velocity.x = 0;
+                return;
+            }
+
             if (this.cursors.left.isDown) {
                 player.body.velocity.x = -300;
                 this.playerWalking = true;
@@ -680,7 +700,7 @@ gameControl.MainGameScreen.prototype = {
                 player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
                 if (this.stepTimer > this.stepWaitTime) {
                     this.stepTimer = 0;
-                    this.playStepSound();
+                    this.playSound("step");
                 }
             } else {
                 this.stepTimer = 0;
