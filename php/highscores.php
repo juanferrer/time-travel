@@ -17,10 +17,10 @@ $requestType = $_POST['type'];
 
 // Handle requests per type
 switch (strtoupper($requestType)) {
-    case 'GET-SCORES':
+    case 'GET_SCORES':
         sendHighScores();
         break;
-    case 'SUBMIT-SCORE':
+    case 'SUBMIT_SCORE':
         $name = $_POST['name'];
         $score = $_POST['score'];
         submitHighScore($name, $score);

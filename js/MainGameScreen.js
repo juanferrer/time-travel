@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals Phaser, game, debug, gameControl, player, playerGhost */
+/* globals Phaser, game, debug, gameControl, player, playerGhost, $*/
 
 /// <reference path="../typescript/phaser.d.ts" />
 /// <reference path="../typescript/phaser-nineslice.d.ts" />
@@ -43,6 +43,7 @@ gameControl.MainGameScreen = function () {
     this.tilesY = 100;
 
     this.gameTime = 0;
+    this.score = 0;
 
     this.dialogs = {
         nextStepCounterTime: 3,
@@ -206,6 +207,11 @@ gameControl.MainGameScreen = function () {
 
     };
 
+    /**
+     * Remove key and add to player's inventory
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} key
+     */
     this.grabKey = function (player, key) {
         player.keyCount++;
         key.kill();
@@ -272,6 +278,26 @@ gameControl.MainGameScreen = function () {
     /** Hide the dialog */
     this.hideDialog = function () {
         this.dialog.visible = false;
+    };
+
+    this.endGame = function () {
+        // TODO: Calculate players's score
+        // TODO: Send player's score
+        // Request and display high scores tables
+        $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/highscores.php", {
+            type: "POST",
+            data: { type: "SUBMIT_SCORE", name: "", score: "" },
+            error: (request, status, error) => {
+                debug.log("Request: " + request);
+                debug.log("Status: " + status);
+                debug.log("Error: " + error);
+            },
+            success: (data, status, request) => {
+                debug.log(data);
+            }
+        });
+
+        this.state.start("MainGameScreen");
     };
 };
 
