@@ -298,9 +298,9 @@ gameControl.MainGameScreen = function () {
         // TODO: Calculate players's score
         // TODO: Send player's score
         // Request and display high scores tables
-        $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/highscores.php", {
+        $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
-            data: { type: "SUBMIT_SCORE", name: "", score: "" },
+            data: { type: "SUBMIT_SCORE", name: "TEST", score: "999" },
             error: (request, status, error) => {
                 debug.log("Request: " + request);
                 debug.log("Status: " + status);
@@ -311,7 +311,7 @@ gameControl.MainGameScreen = function () {
             }
         });
 
-        this.state.start("MainGameScreen");
+        this.state.start("GameOverScreen");
     };
 
     this.playSound = function (type, position) {
