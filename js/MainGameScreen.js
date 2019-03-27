@@ -31,6 +31,15 @@ gameControl.MainGameScreen = function () {
     this.walkFPS;
     this.doorFPS;
 
+    // Sounds
+    this.openDoorSound;
+    this.closeDoorSound;
+    this.woodStepSound;
+    this.woodStepSlowSound;
+
+    this.stepWaitTime = 0.1666666;
+    this.stepTimer = this.stepWaitTime + 1; // Make it greater then stepWaitTime so that is starts immediately
+
     // Controls
     this.cursors;
     this.jumpButton;
@@ -85,15 +94,18 @@ gameControl.MainGameScreen = function () {
             this.playerInAir = false;
             player.animations.stop("inAir");
             player.animations.play("land", this.jumpFPS / this.time.slowMotion);
+            this.playStepSound();
         }
     };
 
     this.openDoor = function (player, door) {
         if (!door.isOpen && !door.isLocked) {
-            door.animations.play("open");
+            door.animations.play("open", this.doorFPS / this.time.slowMotion);
+            this.openDoorSound.play();
             door.isOpen = true;
             setTimeout((door) => {
-                door.animations.play("close");
+                door.animations.play("close", this.doorFPS / this.time.slowMotion);
+                this.closeDoorSound.play();
                 door.isOpen = false;
             }, 3000, door);
         }
@@ -101,9 +113,11 @@ gameControl.MainGameScreen = function () {
 
     this.openStairsDoor = function (player, door) {
         door.animations.play("open", this.doorFPS / this.time.slowMotion);
+        this.openDoorSound.play();
         door.isOpen = true;
         setTimeout((door) => {
             door.animations.play("close", this.doorFPS / this.time.slowMotion);
+            this.closeDoorSound.play();
             door.isOpen = false;
         }, 3000, door);
     };
@@ -280,6 +294,7 @@ gameControl.MainGameScreen = function () {
         this.dialog.visible = false;
     };
 
+<<<<<<< HEAD
     this.endGame = function () {
         // TODO: Calculate players's score
         // TODO: Send player's score
@@ -298,6 +313,15 @@ gameControl.MainGameScreen = function () {
         });
 
         this.state.start("MainGameScreen");
+=======
+    this.playStepSound = function (position) {
+
+        if (this.time.slowMotion > 1){
+            this.woodStepSlowSound.play();
+        } else {
+            this.woodStepSound.play();
+        }
+>>>>>>> 4fad3033fb009bf9c1f4b3d51dd6de2a2a35a2fe
     };
 };
 
@@ -389,6 +413,17 @@ gameControl.MainGameScreen.prototype = {
         this.jumpFPS = 20;
         this.doorFPS = 20;
 
+        // Add sounds
+        this.openDoorSound = game.add.audio("openDoor");
+        this.closeDoorSound = game.add.audio("closeDoor");
+        this.woodStepSound = game.add.audio("woodStep");
+        this.woodStepSlowSound = game.add.audio("woodStepSlow");
+
+        this.openDoorSound.allowMultiple = true;
+        this.closeDoorSound.allowMultiple = true;
+        this.woodStepSound.allowMultiple = true;
+        this.woodStepSlowSound.allowMultiple = true;
+
         // Add animations
         player.animations.add("walk", [1, 2]);
         player.animations.add("jump", [3, 4, 5]);
@@ -475,6 +510,8 @@ gameControl.MainGameScreen.prototype = {
     update: function () {
         // Increase time
         this.gameTime += this.time.physicsElapsed;
+
+        this.stepTimer += this.time.physicsElapsed;
 
         // Reset bools
         this.playerWalking = false;
@@ -604,6 +641,9 @@ gameControl.MainGameScreen.prototype = {
                 player.cd = player.cdTime;
                 player.stopTimer = player.stopTime;
                 this.isTimeStopped = true;
+
+                // Also, stop current walk animation so that the slow animation plays
+                player.animations.stop("walk");
                 // Prepare next dialog
             }
 
@@ -637,8 +677,13 @@ gameControl.MainGameScreen.prototype = {
         // Play animations
         if (player.animations.currentAnim.name !== "disappear" || !player.animations.currentAnim.isPlaying) {
             if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
-                player.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
+                player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
+                if (this.stepTimer > this.stepWaitTime) {
+                    this.stepTimer = 0;
+                    this.playStepSound();
+                }
             } else {
+                this.stepTimer = 0;
                 player.animations.stop("walk");
             }
         }

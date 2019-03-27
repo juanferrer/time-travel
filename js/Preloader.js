@@ -19,22 +19,26 @@ gameControl.Preloader.prototype = {
         this.titleText.anchor.setTo(0.5, 0.5);
 
         // Images
-        this.load.image("titleScreen", "assets/TitleBG.png");
-        this.load.spritesheet("player", "assets/detective.png", 70, 80, 13);
+        this.load.image("titleScreen", "assets/images/TitleBG.png");
+        this.load.spritesheet("player", "assets/images/detective.png", 70, 80, 13);
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.image("wallpaper", "assets/wallpaper.png");
-        this.load.image("walls", "assets/walls.png");
-        this.load.image("key", "assets/key.png");
-        this.load.spritesheet("enemy1", "assets/enemy1.png", 70, 80, 3);
-        this.load.spritesheet("enemy2", "assets/enemy2.png", 70, 80, 3);
-        this.load.spritesheet("doors", "assets/door.png", 120, 120, 5);
-        this.load.spritesheet("stairsDoors", "assets/stairsDoor.png", 120, 120, 5);
+        this.load.image("wallpaper", "assets/images/wallpaper.png");
+        this.load.image("walls", "assets/images/walls.png");
+        this.load.image("key", "assets/images/key.png");
+        this.load.spritesheet("enemy1", "assets/images/enemy1.png", 70, 80, 3);
+        this.load.spritesheet("enemy2", "assets/images/enemy2.png", 70, 80, 3);
+        this.load.spritesheet("doors", "assets/images/door.png", 120, 120, 5);
+        this.load.spritesheet("stairsDoors", "assets/images/stairsDoor.png", 120, 120, 5);
         //this.load.image("trees", "assets/trees.png");
-        this.load.nineSlice("dialog", "assets/dialog.png", 15, 54, 15, 30);
-        this.load.nineSlice("tube", "assets/tube.png", 36);
-        this.load.nineSlice("tubeFilling", "assets/tubeFilling.png", 20);
+        this.load.nineSlice("dialog", "assets/images/dialog.png", 15, 54, 15, 30);
+        this.load.nineSlice("tube", "assets/images/tube.png", 36);
+        this.load.nineSlice("tubeFilling", "assets/images/tubeFilling.png", 20);
+
         // Sounds
-        //this.load.audio("slowTimeSound", "assets/slowTimeSound.wav");
+        this.load.audio("openDoor", "assets/sounds/door-open.wav");
+        this.load.audio("closeDoor", "assets/sounds/door-close.wav");
+        this.load.audio("woodStep", "assets/sounds/step-wood.wav");
+        this.load.audio("woodStepSlow", "assets/sounds/step-wood-slow.wav");
     },
 
     create: function () {
