@@ -295,12 +295,12 @@ gameControl.MainGameScreen = function () {
     };
 
     this.endGame = function () {
-        // TODO: Calculate players's score
-        // TODO: Send player's score
-        // Request and display high scores tables
+        // Calculate players's score (Score time - gameTime in ms) + 5000 if extra achieved
+        let score = 100000 - (this.gameTime * 1000);
+        // Send player's score
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
-            data: { type: "SUBMIT_SCORE", name: "TES", score: "999" },
+            data: { type: "SUBMIT_SCORE", name: "TES", score: score },
             error: (request, status, error) => {
                 debug.log("Request: " + request);
                 debug.log("Status: " + status);
@@ -308,10 +308,9 @@ gameControl.MainGameScreen = function () {
             },
             success: (data, status, request) => {
                 debug.log(data);
+                this.state.start("GameOverScreen");
             }
         });
-
-        this.state.start("GameOverScreen");
     };
 
     this.playSound = function (type, position) {
