@@ -300,7 +300,7 @@ gameControl.MainGameScreen = function () {
         // Request and display high scores tables
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
-            data: { type: "SUBMIT_SCORE", name: "TEST", score: "999" },
+            data: { type: "SUBMIT_SCORE", name: "TES", score: "999" },
             error: (request, status, error) => {
                 debug.log("Request: " + request);
                 debug.log("Status: " + status);
