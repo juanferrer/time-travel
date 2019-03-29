@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals Phaser, game, debug, gameControl, player, playerGhost, $*/
+/* globals Phaser, debug, gameControl, player, playerGhost, score $*/
 
 /// <reference path="../typescript/phaser.d.ts" />
 /// <reference path="../typescript/phaser-nineslice.d.ts" />
@@ -296,7 +296,7 @@ gameControl.MainGameScreen = function () {
 
     this.endGame = function () {
         // Calculate players's score (Score time - gameTime in ms) + 5000 if extra achieved
-        let score = 100000 - (this.gameTime * 1000);
+        score = 100000 - (this.gameTime * 1000);
         // Send player's score
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
@@ -344,6 +344,7 @@ gameControl.MainGameScreen.prototype = {
         debug.log("Main game screen");
 
         this.scale.scaleMode = Phaser.ScaleManager.NO_SCALE;
+        score = 0;
 
         this.physics.startSystem(Phaser.Physics.ARCADE);
         this.physics.arcade.gravity.y = 100;

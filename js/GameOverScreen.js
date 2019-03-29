@@ -14,6 +14,10 @@ gameControl.GameOverScreen = function () {
         this.highscores = this.add.text(this.world.centerX, this.world.centerY, scoresText, { font: "40px 'VT323'", fill: "#FFFFFF" });
         this.highscores.anchor.setTo(0.5, 0.5);
     };
+
+    this.shareOnFacebook = function (score) {
+
+    };
 };
 
 gameControl.GameOverScreen.prototype = {
