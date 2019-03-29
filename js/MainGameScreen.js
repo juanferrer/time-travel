@@ -343,6 +343,8 @@ gameControl.MainGameScreen.prototype = {
     create: function () {
         debug.log("Main game screen");
 
+        this.scale.scaleMode = Phaser.ScaleManager.NO_SCALE;
+
         this.physics.startSystem(Phaser.Physics.ARCADE);
         this.physics.arcade.gravity.y = 100;
 
@@ -352,41 +354,41 @@ gameControl.MainGameScreen.prototype = {
         this.map.addTilesetImage("walls", "walls");
         this.map.addTilesetImage("wallpaper", "wallpaper", 120, 120);
         this.map.addTilesetImage("door", "doors");
-        game.stage.backgroundColor = "#FFAC5B";
+        this.stage.backgroundColor = "#FFAC5B";
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
-        this.doors = game.add.group();
+        this.doors = this.add.group();
         this.doors.enableBody = true;
         this.map.createFromObjects("Doors", 10, "doors", 0, true, false, this.doors);
 
         this.doors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
         this.doors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
 
-        this.stairsDoors = game.add.group();
+        this.stairsDoors = this.add.group();
         this.stairsDoors.enableBody = true;
         this.map.createFromObjects("StairsDoors", 16, "stairsDoors", 0, true, false, this.stairsDoors);
 
         this.stairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
         this.stairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
 
-        this.lockedStairsDoors = game.add.group();
+        this.lockedStairsDoors = this.add.group();
         this.lockedStairsDoors.enableBody = true;
         this.map.createFromObjects("LockedStairsDoors", 17, "stairsDoors", 0, true, false, this.lockedStairsDoors);
 
         this.lockedStairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
         this.lockedStairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
 
-        this.keys = game.add.group();
+        this.keys = this.add.group();
         this.keys.enableBody = true;
         this.map.createFromObjects("Keys", 54, "key", 0, true, false, this.keys);
 
-        this.enemy1Group = game.add.group();
+        this.enemy1Group = this.add.group();
         this.enemy1Group.enableBody = true;
         this.map.createFromObjects("Enemy1", 46, "enemy1", 0, true, false, this.enemy1Group);
 
         this.enemy1Group.callAll("animations.add", "animations", "walk", [1, 2], 20);
 
-        this.enemy2Group = game.add.group();
+        this.enemy2Group = this.add.group();
         this.enemy2Group.enableBody = true;
         this.map.createFromObjects("Enemy2", 50, "enemy2", 0, true, false, this.enemy2Group);
 
@@ -403,7 +405,7 @@ gameControl.MainGameScreen.prototype = {
         this.dialog.visible = false;
         this.dialog.anchor.setTo(0, 1);
 
-        this.dialogText = game.add.text(0, 0, "Some text to test", { font: "40px 'VT323'", fill: "#000000" });
+        this.dialogText = this.add.text(0, 0, "Some text to test", { font: "40px 'VT323'", fill: "#000000" });
         this.dialog.addChild(this.dialogText);
         player.addChild(this.dialog);
         this.dialogText.anchor.setTo(0, 0);
@@ -428,10 +430,10 @@ gameControl.MainGameScreen.prototype = {
         this.doorFPS = 20;
 
         // Add sounds
-        this.openDoorSound = game.add.audio("openDoor");
-        this.closeDoorSound = game.add.audio("closeDoor");
-        this.woodStepSound = game.add.audio("woodStep");
-        this.woodStepSlowSound = game.add.audio("woodStepSlow");
+        this.openDoorSound = this.add.audio("openDoor");
+        this.closeDoorSound = this.add.audio("closeDoor");
+        this.woodStepSound = this.add.audio("woodStep");
+        this.woodStepSlowSound = this.add.audio("woodStepSlow");
 
         this.openDoorSound.allowMultiple = true;
         this.closeDoorSound.allowMultiple = true;
@@ -689,7 +691,7 @@ gameControl.MainGameScreen.prototype = {
         }
 
         // Debug
-        if (game.input.keyboard.isDown(Phaser.Keyboard.P)) {
+        if (this.input.keyboard.isDown(Phaser.Keyboard.P)) {
             this.showDialog("This is a test");
         }
 

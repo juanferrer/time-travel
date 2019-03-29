@@ -1,17 +1,29 @@
-/* globals gameControl, debug, $ */
+/* globals gameControl, debug, $, game, Phaser */
+
+/// <reference path="../typescript/phaser.d.ts" />
 
 gameControl.GameOverScreen = function () {
-    this.displayHighScores = function (scores) {
+    this.highscores;
 
+    this.displayHighScores = function (scores) {
+        let scoresText = "";
+        for (let i = 0; i < scores.length; ++i) {
+            scoresText += `${scores[i].name}....................${scores[i].score}\n`;
+        }
+
+        this.highscores = this.add.text(this.world.centerX, this.world.centerY, scoresText, { font: "40px 'VT323'", fill: "#FFFFFF" });
+        this.highscores.anchor.setTo(0.5, 0.5);
     };
 };
 
 gameControl.GameOverScreen.prototype = {
     create: function () {
         debug.log("Game Over screen");
+        this.stage.backgroundColor = "#000000";
+        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 
         // Request and display high scores tables
-        $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/highscores.php", {
+        $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
             data: { type: "GET_SCORES" },
             error: (request, status, error) => {
@@ -20,9 +32,9 @@ gameControl.GameOverScreen.prototype = {
                 debug.log("Error: " + error);
             },
             success: (data, status, request) => {
-                debug.log(data);
+                debug.log(JSON.parse(data));
 
-                this.displayHighScores();
+                this.displayHighScores(JSON.parse(data));
             }
         });
     }
