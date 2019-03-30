@@ -1,9 +1,12 @@
-/* globals gameControl, debug, $, Phaser, FB */
+/* globals gameControl, debug, $, Phaser, FB, score */
 
 /// <reference path="../typescript/phaser.d.ts" />
 
 gameControl.GameOverScreen = function () {
     this.highscores;
+    this.playAgainButton;
+    this.playAgainText;
+    this.shareOnFacebookButton;
 
     this.displayHighScores = function (scores) {
         let scoresText = "";
@@ -11,11 +14,11 @@ gameControl.GameOverScreen = function () {
             scoresText += `${scores[i].name}....................${scores[i].score}\n`;
         }
 
-        this.highscores = this.add.text(this.world.centerX, this.world.centerY - 100, scoresText, { font: "40px 'VT323'", fill: "#FFFFFF" });
+        this.highscores = this.add.text(this.world.centerX, this.world.centerY - 10, scoresText, { font: "30px 'VT323'", fill: "#FFFFFF" });
         this.highscores.anchor.setTo(0.5, 0.5);
     };
 
-    this.shareOnFacebook = function (score) {
+    this.shareOnFacebook = function (object, sender, score) {
         FB.ui({
             method: "share",
             href: "https://vesta.uclan.ac.uk/~jeferrer-cortez",
@@ -29,6 +32,23 @@ gameControl.GameOverScreen.prototype = {
         debug.log("Game Over screen");
         this.stage.backgroundColor = "#000000";
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
+        this.playAgainButton = this.add.nineSlice(this.world.centerX - 100, this.world.centerY * 2 - 60, "button", null, 200, 70);
+        this.playAgainButton.inputEnabled = true;
+        this.playAgainButton.events.onInputDown.addOnce(() => { this.state.start("MainGameScreen"); }, this);
+
+        this.playAgainButton.fixedToCamera = true;
+        this.playAgainButton.anchor.setTo(0.5, 0.5);
+
+        this.playAgainText = this.add.text(0, 0, "Play Again", { font: "40px 'VT323'", fill: "#000000" });
+        this.playAgainButton.addChild(this.playAgainText);
+        this.playAgainText.anchor.setTo(0.5, 0.5);
+
+        this.shareOnFacebookButton = this.add.nineSlice(this.world.centerX + 100, this.world.centerY * 2 - 60, "facebook", null, 200, 70);
+        this.shareOnFacebookButton.inputEnabled = true;
+        this.shareOnFacebookButton.events.onInputDown.add(this.shareOnFacebook, this, 0, score);
+        this.shareOnFacebookButton.fixedToCamera = true;
+        this.shareOnFacebookButton.anchor.setTo(0.5, 0.5);
 
         // Request and display high scores tables
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {

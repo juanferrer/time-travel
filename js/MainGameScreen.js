@@ -52,7 +52,6 @@ gameControl.MainGameScreen = function () {
     this.tilesY = 100;
 
     this.gameTime = 0;
-    this.score = 0;
 
     this.dialogs = {
         nextStepCounterTime: 3,
