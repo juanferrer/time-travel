@@ -1,4 +1,4 @@
-/* globals gameControl, debug, $, game, Phaser */
+/* globals gameControl, debug, $, Phaser, FB */
 
 /// <reference path="../typescript/phaser.d.ts" />
 
@@ -11,12 +11,16 @@ gameControl.GameOverScreen = function () {
             scoresText += `${scores[i].name}....................${scores[i].score}\n`;
         }
 
-        this.highscores = this.add.text(this.world.centerX, this.world.centerY, scoresText, { font: "40px 'VT323'", fill: "#FFFFFF" });
+        this.highscores = this.add.text(this.world.centerX, this.world.centerY - 100, scoresText, { font: "40px 'VT323'", fill: "#FFFFFF" });
         this.highscores.anchor.setTo(0.5, 0.5);
     };
 
     this.shareOnFacebook = function (score) {
-
+        FB.ui({
+            method: "share",
+            href: "https://vesta.uclan.ac.uk/~jeferrer-cortez",
+            quote: `I achieved a score of ${score} on Time Travel!`,
+        });
     };
 };
 
@@ -35,7 +39,7 @@ gameControl.GameOverScreen.prototype = {
                 debug.log("Status: " + status);
                 debug.log("Error: " + error);
             },
-            success: (data, status, request) => {
+            success: (data/*, status, request*/) => {
                 debug.log(JSON.parse(data));
 
                 this.displayHighScores(JSON.parse(data));

@@ -306,14 +306,14 @@ gameControl.MainGameScreen = function () {
                 debug.log("Status: " + status);
                 debug.log("Error: " + error);
             },
-            success: (data, status, request) => {
+            success: (data/*, status, request*/) => {
                 debug.log(data);
                 this.state.start("GameOverScreen");
             }
         });
     };
 
-    this.playSound = function (type, position) {
+    this.playSound = function (type/*, position*/) {
         if (this.time.slowMotion > 1) {
             switch (type) {
                 case "step":

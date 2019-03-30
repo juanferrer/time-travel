@@ -1,27 +1,44 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>title</title>
-    <link rel="stylesheet" href="styles/style.css">
-    <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
-  </head>
-  <body>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Time Travel</title>
+  <link rel="stylesheet" href="styles/style.css">
+  <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
+</head>
+
+<body>
   <div id="canvas"></div>
-  </body>
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-  <!-- Phaser CE -->
-  <script src="//cdn.jsdelivr.net/npm/phaser-ce@2.11.1"></script>
-  <!-- Main script -->
-  <script src="js/index.js"></script>
-  <!-- Phaser plugins -->
-  <script src="js/third-party/phaser-nineslice.js"></script>
-  <!-- Phaser state script -->
-  <script src="js/Boot.js"></script>
-  <script src="js/Preloader.js"></script>
-  <script src="js/StartScreen.js"></script>
-  <script src="js/MainGameScreen.js"></script>
-  <script src="js/GameOverScreen.js"></script>
-  <div id="game-container"></div>
+</body>
+<!-- Load Facebook scripts -->
+<script>
+  window.fbAsyncInit = function () {
+    FB.init({
+      appId: "275303050059221",
+      autoLogAppEvents: true,
+      xfbml: true,
+      version: 'v0.1'
+    });
+  };
+</script>
+<script async defer src="https://connect.facebook.net/en_GB/sdk.js"></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<!-- Phaser CE -->
+<script src="//cdn.jsdelivr.net/npm/phaser-ce@2.11.1"></script>
+<!-- Main script -->
+<script src="js/index.js"></script>
+<!-- Phaser plugins -->
+<script src="js/third-party/phaser-nineslice.js"></script>
+<!-- Phaser state script -->
+<script src="js/Boot.js"></script>
+<script src="js/Preloader.js"></script>
+<script src="js/StartScreen.js"></script>
+<script src="js/MainGameScreen.js"></script>
+<script src="js/GameOverScreen.js"></script>
+<div id="game-container"></div>
+
 </html>
