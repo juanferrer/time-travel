@@ -31,7 +31,8 @@ gameControl.Preloader.prototype = {
         this.load.spritesheet("enemy2", "assets/images/enemy2.png", 70, 80, 3);
         this.load.spritesheet("doors", "assets/images/door.png", 120, 120, 5);
         this.load.spritesheet("stairsDoors", "assets/images/stairsDoor.png", 120, 120, 5);
-        //this.load.image("trees", "assets/trees.png");
+        this.load.image("stopwatch", "assets/images/stopwatch.png");
+        this.load.spritesheet("timeRift", "assets/images/timeRift.png", 60, 60, 4);
         this.load.nineSlice("dialog", "assets/images/dialog.png", 15, 54, 15, 30);
         this.load.nineSlice("button", "assets/images/button.png", 20);
         this.load.nineSlice("facebook", "assets/images/facebook.png", 20, 20, 50, 20);

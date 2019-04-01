@@ -17,6 +17,8 @@ gameControl.MainGameScreen = function () {
     this.slowTube;
     this.stopTube;
     this.portalTube;
+    this.stopwatches;
+    this.timeRift;
 
     this.keys;
     this.enemy1Group;
@@ -230,6 +232,24 @@ gameControl.MainGameScreen = function () {
         key.kill();
     };
 
+    this.grabStopwatch = function (player, stopwatch) {
+        player.hasStopwatch = true;
+        stopwatch.kill();
+        // Add the stopwatch to the UI, so that the player knows
+        // they got it
+        let sprite = this.add.sprite(30, 500, "stopwatch");
+        sprite.fixedToCamera = true;
+        sprite.alpha = 0.7;
+    };
+
+    this.enterTimeRift = function (player, timeRift) {
+        // TODO: Show end animation
+        // TODO: Name input
+
+
+        this.endGame();
+    };
+
     /**
      * Split a text into an array of lines of a specified length
      * @param {string} text
@@ -373,7 +393,7 @@ gameControl.MainGameScreen.prototype = {
 
         this.lockedStairsDoors = this.add.group();
         this.lockedStairsDoors.enableBody = true;
-        this.map.createFromObjects("LockedStairsDoors", 17, "stairsDoors", 0, true, false, this.lockedStairsDoors);
+        this.map.createFromObjects("LockedStairsDoors", 16, "stairsDoors", 0, true, false, this.lockedStairsDoors);
 
         this.lockedStairsDoors.callAll("animations.add", "animations", "open", [0, 1, 2, 3, 4]);
         this.lockedStairsDoors.callAll("animations.add", "animations", "close", [4, 3, 2, 1, 0]);
@@ -391,6 +411,16 @@ gameControl.MainGameScreen.prototype = {
         this.enemy2Group = this.add.group();
         this.enemy2Group.enableBody = true;
         this.map.createFromObjects("Enemy2", 50, "enemy2", 0, true, false, this.enemy2Group);
+
+        this.stopwatches = this.add.group();
+        this.stopwatches.enableBody = true;
+        this.map.createFromObjects("Stopwatch", 55, "stopwatch", 0, true, false, this.stopwatches);
+
+        this.timeRift = this.add.group();
+        this.timeRift.enableBody = true;
+        this.map.createFromObjects("TimeRift", 56, "timeRift", 0, true, false, this.timeRift);
+
+        this.timeRift.callAll("animations.add", "animations", "normal", [0, 1, 2, 3]);
 
         this.world.resize(this.tileSize * this.tilesX, this.tileSize * this.tilesY);
 
@@ -494,6 +524,19 @@ gameControl.MainGameScreen.prototype = {
             door.isLocked = true;
         });
 
+        this.keys.forEach((key) => {
+            key.body.allowGravity = false;
+        });
+
+        this.stopwatches.forEach((stopwatch) => {
+            stopwatch.body.allowGravity = false;
+        });
+
+        this.timeRift.forEach((timeRift) => {
+            timeRift.body.allowGravity = false;
+            timeRift.animations.play("normal", 20, true);
+        });
+
         player.body.setSize(60, 75);
 
         // Player cooldowns
@@ -521,6 +564,7 @@ gameControl.MainGameScreen.prototype = {
         this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
         player.animations.play("walk");
         player.keyCount = 0;
+        player.hasStopwatch = false;
     },
 
     update: function () {
@@ -572,13 +616,14 @@ gameControl.MainGameScreen.prototype = {
         this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
         this.physics.arcade.collide(this.enemy1Group, this.floorLayer, this.collisionHandler, null, this);
         this.physics.arcade.collide(this.enemy2Group, this.floorLayer, this.collisionHandler, null, this);
-        this.physics.arcade.collide(this.keys, this.floorLayer, this.collisionHandler, null, this);
 
         // Player interaction
         this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
         this.physics.arcade.overlap(player, this.keys, this.grabKey, null, this);
+        this.physics.arcade.overlap(player, this.stopwatches, this.grabStopwatch, null, this);
         this.physics.arcade.overlap(player, this.enemy1Group, this.killPlayer, null, this);
         this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
+        this.physics.arcade.overlap(player, this.timeRift, this.enterTimeRift, null, this);
         player.body.velocity.x = 0;
 
         // Check input
