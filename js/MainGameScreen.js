@@ -19,19 +19,22 @@ gameControl.MainGameScreen = function () {
     this.portalTube;
     this.stopwatches;
     this.timeRift;
+    this.keys;
+    this.enemy1Group;
+    this.enemy2Group;
+    this.tubeFillingMaxY = 200;
 
+    
     // Score
     this.scoreSubmission;
     this.scoreLeft;
     this.scoreRight;
     this.scoreUp;
     this.scoreDown;
-
-    this.keys;
-    this.enemy1Group;
-    this.enemy2Group;
-
-    this.tubeFillingMaxY = 200;
+    this.char1;
+    this.char2;
+    this.char3;
+    this.letters = [" ", " ", " "];
 
     // Player animation info
     this.playerWalking;
@@ -260,6 +263,8 @@ gameControl.MainGameScreen = function () {
      * @param {Phaser.Sprite} timeRift
      */
     this.enterTimeRift = function (player, timeRift) {
+        // Disable gravity
+        game.physics.arcade.isPaused = true;
         // TODO: Show end animation
         // TODO: Name input
         this.enterScoreSubmission(this.endGame);
@@ -270,6 +275,9 @@ gameControl.MainGameScreen = function () {
      * @param {string} direction
      */
     this.moveLetterSelector = function (direction) {
+
+        let letterIndex = (this.scoreUp.position.x - 350) % 50;
+
         switch (direction.toUpperCase()) {
             case "LEFT":
                 this.scoreUp.position.x = this.scoreDown.position.x -= 50;
@@ -283,6 +291,10 @@ gameControl.MainGameScreen = function () {
                     this.scoreUp.position.x = this.scoreDown.position.x = 350;
                 }
                 break;
+            case "UP":
+                break;
+            case "DOWN":
+                break;
             default:
                 // Do nothing
                 break;
@@ -294,6 +306,7 @@ gameControl.MainGameScreen = function () {
      * @param {function} callback
      */
     this.enterScoreSubmission = function (callback) {
+        game.physics.arcade.isPaused = true;
         
         // Modify input
 
@@ -651,6 +664,35 @@ gameControl.MainGameScreen.prototype = {
     update: function () {
         if (this.scoreSubmission) {
             // Don't go into normal loop, we're submitting our score
+            if (this.cursors.left.isDown) {
+                if (this.cursors.left.justPressed() || this.cursors.left.duration > 500) {
+
+                    this.moveLetterSelector("left");
+                    this.cursors.left.reset();
+                }
+            }
+            
+            if (this.cursors.right.isDown) {
+                if (this.cursors.right.justPressed() || this.cursors.right.duration > 500) {
+                    this.moveLetterSelector("right");
+                    this.cursors.right.reset();
+                }
+            }
+
+            if (this.cursors.up.isDown) {
+                if (this.cursors.up.justPressed() || this.cursors.up.duration > 500) {
+                    this.moveLetterSelector("up");
+                    this.cursors.up.reset();
+                }
+            }
+
+            if (this.cursors.down.isDown) {
+                if (this.cursors.down.justPressed() || this.cursors.down.duration > 500) {
+                    this.moveLetterSelector("down");
+                    this.cursors.down.reset();
+                }
+            }
+
         } else {
             // Not on submission yet, do normal loop
             // Increase time
