@@ -281,14 +281,14 @@ gameControl.MainGameScreen = function () {
         switch (direction.toUpperCase()) {
             case "LEFT":
                 this.scoreUp.position.x = this.scoreDown.position.x -= 50;
-                if (this.scoreUp.position.x < 350) {
-                    this.scoreUp.position.x = this.scoreDown.position.x = 450;
+                if (this.scoreUp.position.x < (game.canvas.width) / 2 - 50) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = (game.canvas.width) / 2 + 50;
                 }
                 break;
             case "RIGHT":
                 this.scoreUp.position.x = this.scoreDown.position.x += 50;
-                if (this.scoreUp.position.x > 450) {
-                    this.scoreUp.position.x = this.scoreDown.position.x = 350;
+                if (this.scoreUp.position.x > (game.canvas.width) / 2 + 50) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = (game.canvas.width) / 2 - 50;
                 }
                 break;
             case "UP":
@@ -318,18 +318,18 @@ gameControl.MainGameScreen = function () {
         this.scoreSubmission.fixedToCamera = true;
 
         // Add arrows and spaces
-        this.scoreLeft = this.add.sprite(300, 300, "arrow");
+        this.scoreLeft = this.add.sprite((game.canvas.width) / 2 - 100, (game.canvas.height) / 2, "arrow");
         this.scoreLeft.anchor.setTo(0.5, 0.5);
         this.scoreLeft.angle -= 90;
 
-        this.scoreRight = this.add.sprite(500, 300, "arrow");
+        this.scoreRight = this.add.sprite((game.canvas.width) / 2 + 100, (game.canvas.height) / 2, "arrow");
         this.scoreRight.anchor.setTo(0.5, 0.5);
         this.scoreRight.angle += 90;
 
-        this.scoreUp = this.add.sprite(400, 250, "arrow");
+        this.scoreUp = this.add.sprite((game.canvas.width) / 2, (game.canvas.height) / 2 - 50, "arrow");
         this.scoreUp.anchor.setTo(0.5, 0.5);
 
-        this.scoreDown = this.add.sprite(400, 350, "arrow");
+        this.scoreDown = this.add.sprite((game.canvas.width) / 2, (game.canvas.height) / 2 + 50, "arrow");
         this.scoreDown.anchor.setTo(0.5, 0.5);
         this.scoreDown.angle -= 180;
 
@@ -337,6 +337,7 @@ gameControl.MainGameScreen = function () {
         this.scoreSubmission.addChild(this.scoreRight);
         this.scoreSubmission.addChild(this.scoreUp);
         this.scoreSubmission.addChild(this.scoreDown);
+
 
         // callback();
     };
