@@ -38,7 +38,7 @@ gameControl.Preloader.prototype = {
         this.load.nineSlice("facebook", "assets/images/facebook.png", 20, 20, 50, 20);
         this.load.nineSlice("tube", "assets/images/tube.png", 36);
         this.load.nineSlice("tubeFilling", "assets/images/tubeFilling.png", 20);
-
+        this.load.image("arrow", "assets/images/arrow.png");
         // Sounds
         this.load.audio("openDoor", "assets/sounds/door-open.wav");
         this.load.audio("closeDoor", "assets/sounds/door-close.wav");

@@ -20,6 +20,13 @@ gameControl.MainGameScreen = function () {
     this.stopwatches;
     this.timeRift;
 
+    // Score
+    this.scoreSubmission;
+    this.scoreLeft;
+    this.scoreRight;
+    this.scoreUp;
+    this.scoreDown;
+
     this.keys;
     this.enemy1Group;
     this.enemy2Group;
@@ -232,23 +239,94 @@ gameControl.MainGameScreen = function () {
         key.kill();
     };
 
+    /**
+     * Remove stopwatch and add to player inventory
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} stopwatch
+     */
     this.grabStopwatch = function (player, stopwatch) {
         player.hasStopwatch = true;
         stopwatch.kill();
         // Add the stopwatch to the UI, so that the player knows
         // they got it
-        let sprite = this.add.sprite(30, 500, "stopwatch");
+        let sprite = this.add.sprite(30, game.canvas.height - 30 - 95, "stopwatch");
         sprite.fixedToCamera = true;
         sprite.alpha = 0.7;
     };
 
+    /**
+     * Show final animation and input for score
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} timeRift
+     */
     this.enterTimeRift = function (player, timeRift) {
         // TODO: Show end animation
         // TODO: Name input
-
-
-        this.endGame();
+        this.enterScoreSubmission(this.endGame);
     };
+
+    /**
+     * Move the arros on top of the letter in the direction specified
+     * @param {string} direction
+     */
+    this.moveLetterSelector = function (direction) {
+        switch (direction.toUpperCase()) {
+            case "LEFT":
+                this.scoreUp.position.x = this.scoreDown.position.x -= 50;
+                if (this.scoreUp.position.x < 350) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = 450;
+                }
+                break;
+            case "RIGHT":
+                this.scoreUp.position.x = this.scoreDown.position.x += 50;
+                if (this.scoreUp.position.x > 450) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = 350;
+                }
+                break;
+            default:
+                // Do nothing
+                break;
+        }
+    }
+
+    /**
+     * Enter score submission state
+     * @param {function} callback
+     */
+    this.enterScoreSubmission = function (callback) {
+        
+        // Modify input
+
+        // Show input area
+        let graphics = this.add.graphics();
+        graphics.beginFill(0x000000, 0.7);
+        this.scoreSubmission = graphics.drawRect((game.canvas.width - 500) / 2, (game.canvas.height - 500) / 2, 500, 500);
+        graphics.endFill();
+        this.scoreSubmission.fixedToCamera = true;
+
+        // Add arrows and spaces
+        this.scoreLeft = this.add.sprite(300, 300, "arrow");
+        this.scoreLeft.anchor.setTo(0.5, 0.5);
+        this.scoreLeft.angle -= 90;
+
+        this.scoreRight = this.add.sprite(500, 300, "arrow");
+        this.scoreRight.anchor.setTo(0.5, 0.5);
+        this.scoreRight.angle += 90;
+        
+        this.scoreUp = this.add.sprite(400, 250, "arrow");
+        this.scoreUp.anchor.setTo(0.5, 0.5);
+
+        this.scoreDown = this.add.sprite(400, 350, "arrow");
+        this.scoreDown.anchor.setTo(0.5, 0.5);
+        this.scoreDown.angle -= 180;
+
+        this.scoreSubmission.addChild(this.scoreLeft);
+        this.scoreSubmission.addChild(this.scoreRight);
+        this.scoreSubmission.addChild(this.scoreUp);
+        this.scoreSubmission.addChild(this.scoreDown);
+
+        //this.endGame();
+    }
 
     /**
      * Split a text into an array of lines of a specified length
@@ -571,193 +649,198 @@ gameControl.MainGameScreen.prototype = {
     },
 
     update: function () {
-        // Increase time
-        this.gameTime += this.time.physicsElapsed;
-
-        this.stepTimer += this.time.physicsElapsed;
-
-        // Reset bools
-        this.playerWalking = false;
-
-        // Update dialog counters
-        for (let key in this.dialogs) {
-            if (this.dialogs[key].counter > 0) {
-                let object = this.dialogs[key];
-                object.counter -= this.time.physicsElapsed;
-                if (object.counter < 0) {
-                    this.showDialog(object.text);
-                    object.counter = -1;
-                }
-            }
-        }
-
-        // Update cooldown
-        if (player.cd > 0) player.cd -= this.time.physicsElapsed;
-
-        // Update tube fillings
-        this.tubeFilling.resize(Math.max(200 * ((player.cdTime - player.cd) / player.cdTime), 30), 60);
-
-        // Update timers
-        if (player.slowTimer > 0) {
-            player.slowTimer -= this.time.physicsElapsed;
-            if (player.slowTimer <= 0) {
-                this.time.desiredFps = 60;
-                this.time.slowMotion = 1;
-            }
-        }
-
-        if (player.stopTimer > 0) {
-            player.stopTimer -= this.time.physicsElapsed;
-            if (player.stopTimer <= 0) {
-                this.isTimeStopped = false;
-            }
-        }
-
-        // Physics
-
-        // Floor collisions
-        this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
-        this.physics.arcade.collide(this.enemy1Group, this.floorLayer, this.collisionHandler, null, this);
-        this.physics.arcade.collide(this.enemy2Group, this.floorLayer, this.collisionHandler, null, this);
-
-        // Player interaction
-        this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
-        this.physics.arcade.overlap(player, this.keys, this.grabKey, null, this);
-        this.physics.arcade.overlap(player, this.stopwatches, this.grabStopwatch, null, this);
-        this.physics.arcade.overlap(player, this.enemy1Group, this.killPlayer, null, this);
-        this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
-        this.physics.arcade.overlap(player, this.timeRift, this.enterTimeRift, null, this);
-        player.body.velocity.x = 0;
-
-        // Check input
-        if (this.cursors.left.isDown || this.cursors.right.isDown) {
-            // Prepare next dialog
-            if (!this.dialogs.move.completed) {
-                this.prepareNextDialog();
-            }
-
-            if (!player.renderable) {
-                player.body.velocity.x = 0;
-                return;
-            }
-
-            if (this.cursors.left.isDown) {
-                player.body.velocity.x = -300;
-                this.playerWalking = true;
-                if (player.scale.x > 0) {
-                    player.scale.x *= -1;
-                }
-            } else if (this.cursors.right.isDown) {
-                player.body.velocity.x = 300;
-                this.playerWalking = true;
-                if (player.scale.x < 0) {
-                    player.scale.x *= -1;
-                }
-            }
-        }
-        if (this.cursors.up.isDown || this.cursors.down.isDown) {
-
-            if ((this.cursors.up.justPressed() || this.cursors.up.duration > 1000) ||
-                (this.cursors.down.justPressed() || this.cursors.down.duration > 1000)) {
-                // Check if we're near a stairs door before acting
-                this.physics.arcade.overlap(player, this.stairsDoors, this.goThroughStairsDoor, null, this);
-                this.physics.arcade.overlap(player, this.lockedStairsDoors, this.goThroughStairsDoor, null, this);
-            }
-        }
-
-        if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-            // Prepare next dialog
-            if (!this.dialogs.jump.completed) {
-                this.prepareNextDialog();
-            }
-
-            player.body.velocity.y = -800;
-            player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
-            this.playerInAir = true;
-        }
-
-        // Handle abilities
-        if (this.backtrackButton.isDown) {
-            if (!this.dialogs.backtrack1.completed) {
-                this.prepareNextDialog();
-            } else if (this.dialogs.backtrack1.completed && !this.dialogs.backtrack2.completed) {
-                this.prepareNextDialog();
-            }
-
-            if (player.cd <= 0) {
-                if (playerGhost.visible) {
-                    // Send player to backtrack position
-                    player.animations.play("disappear");
-                    player.cd = player.cdTime;
-                } else {
-                    // Set backtrack point
-                    playerGhost.position.x = player.position.x;
-                    playerGhost.position.y = player.position.y;
-                    playerGhost.scale.x = player.scale.x;
-                    playerGhost.visible = true;
-                    player.cd = player.cdTime / 10;
-                }
-            }
+        if (this.scoreSubmission) {
+            // Don't go into normal loop, we're submitting our score
         } else {
-            //
-        }
+            // Not on submission yet, do normal loop
+            // Increase time
+            this.gameTime += this.time.physicsElapsed;
 
-        if (this.stopButton.isDown) {
-            if (!this.dialogs.stop.completed) {
-                this.prepareNextDialog();
+            this.stepTimer += this.time.physicsElapsed;
+
+            // Reset bools
+            this.playerWalking = false;
+
+            // Update dialog counters
+            for (let key in this.dialogs) {
+                if (this.dialogs[key].counter > 0) {
+                    let object = this.dialogs[key];
+                    object.counter -= this.time.physicsElapsed;
+                    if (object.counter < 0) {
+                        this.showDialog(object.text);
+                        object.counter = -1;
+                    }
+                }
             }
-            if (player.cd <= 0) {
-                player.cd = player.cdTime;
-                player.stopTimer = player.stopTime;
-                this.isTimeStopped = true;
 
-                // Also, stop current walk animation so that the slow animation plays
-                player.animations.stop("walk");
+            // Update cooldown
+            if (player.cd > 0) player.cd -= this.time.physicsElapsed;
+
+            // Update tube fillings
+            this.tubeFilling.resize(Math.max(200 * ((player.cdTime - player.cd) / player.cdTime), 30), 60);
+
+            // Update timers
+            if (player.slowTimer > 0) {
+                player.slowTimer -= this.time.physicsElapsed;
+                if (player.slowTimer <= 0) {
+                    this.time.desiredFps = 60;
+                    this.time.slowMotion = 1;
+                }
+            }
+
+            if (player.stopTimer > 0) {
+                player.stopTimer -= this.time.physicsElapsed;
+                if (player.stopTimer <= 0) {
+                    this.isTimeStopped = false;
+                }
+            }
+
+            // Physics
+
+            // Floor collisions
+            this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
+            this.physics.arcade.collide(this.enemy1Group, this.floorLayer, this.collisionHandler, null, this);
+            this.physics.arcade.collide(this.enemy2Group, this.floorLayer, this.collisionHandler, null, this);
+
+            // Player interaction
+            this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
+            this.physics.arcade.overlap(player, this.keys, this.grabKey, null, this);
+            this.physics.arcade.overlap(player, this.stopwatches, this.grabStopwatch, null, this);
+            this.physics.arcade.overlap(player, this.enemy1Group, this.killPlayer, null, this);
+            this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
+            this.physics.arcade.overlap(player, this.timeRift, this.enterTimeRift, null, this);
+            player.body.velocity.x = 0;
+
+            // Check input
+            if (this.cursors.left.isDown || this.cursors.right.isDown) {
                 // Prepare next dialog
+                if (!this.dialogs.move.completed) {
+                    this.prepareNextDialog();
+                }
+
+                if (!player.renderable) {
+                    player.body.velocity.x = 0;
+                    return;
+                }
+
+                if (this.cursors.left.isDown) {
+                    player.body.velocity.x = -300;
+                    this.playerWalking = true;
+                    if (player.scale.x > 0) {
+                        player.scale.x *= -1;
+                    }
+                } else if (this.cursors.right.isDown) {
+                    player.body.velocity.x = 300;
+                    this.playerWalking = true;
+                    if (player.scale.x < 0) {
+                        player.scale.x *= -1;
+                    }
+                }
+            }
+            if (this.cursors.up.isDown || this.cursors.down.isDown) {
+
+                if ((this.cursors.up.justPressed() || this.cursors.up.duration > 1000) ||
+                    (this.cursors.down.justPressed() || this.cursors.down.duration > 1000)) {
+                    // Check if we're near a stairs door before acting
+                    this.physics.arcade.overlap(player, this.stairsDoors, this.goThroughStairsDoor, null, this);
+                    this.physics.arcade.overlap(player, this.lockedStairsDoors, this.goThroughStairsDoor, null, this);
+                }
             }
 
-        } else {
-            this.isTimeStopped = false;
-        }
+            if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+                // Prepare next dialog
+                if (!this.dialogs.jump.completed) {
+                    this.prepareNextDialog();
+                }
 
-        if (this.slowButton.isDown) {
-            if (!this.dialogs.slow.completed) {
-                this.prepareNextDialog();
+                player.body.velocity.y = -800;
+                player.animations.play("jump", this.jumpFPS / this.time.slowMotion);
+                this.playerInAir = true;
             }
-            // Player is pressing slow down
-            // TODO: Slow down over time
-            if (player.slowTimer <= 0 && player.cd <= 0) {
-                player.cd = player.cdTime;
-                player.slowTimer = player.slowTime;
-                this.time.slowMotion = 3.0;
-                this.time.desiredFps = 180;
-            }
-        } else {
-            player.slowTimer = 0;
-            this.time.slowMotion = 1.0;
-            this.time.desiredFps = 60;
-        }
 
-        // Debug
-        if (this.input.keyboard.isDown(Phaser.Keyboard.P)) {
-            this.showDialog("This is a test");
-        }
+            // Handle abilities
+            if (this.backtrackButton.isDown) {
+                if (!this.dialogs.backtrack1.completed) {
+                    this.prepareNextDialog();
+                } else if (this.dialogs.backtrack1.completed && !this.dialogs.backtrack2.completed) {
+                    this.prepareNextDialog();
+                }
 
-        // Play animations
-        if (player.animations.currentAnim.name !== "disappear" || !player.animations.currentAnim.isPlaying) {
-            if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
-                player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
-                if (this.stepTimer > this.stepWaitTime) {
-                    this.stepTimer = 0;
-                    this.playSound("step");
+                if (player.cd <= 0) {
+                    if (playerGhost.visible) {
+                        // Send player to backtrack position
+                        player.animations.play("disappear");
+                        player.cd = player.cdTime;
+                    } else {
+                        // Set backtrack point
+                        playerGhost.position.x = player.position.x;
+                        playerGhost.position.y = player.position.y;
+                        playerGhost.scale.x = player.scale.x;
+                        playerGhost.visible = true;
+                        player.cd = player.cdTime / 10;
+                    }
                 }
             } else {
-                this.stepTimer = 0;
-                player.animations.stop("walk");
+                //
             }
-        }
 
-        // Update orientation of dialog
-        this.dialog.scale.x = player.scale.x;
+            if (this.stopButton.isDown) {
+                if (!this.dialogs.stop.completed) {
+                    this.prepareNextDialog();
+                }
+                if (player.cd <= 0) {
+                    player.cd = player.cdTime;
+                    player.stopTimer = player.stopTime;
+                    this.isTimeStopped = true;
+
+                    // Also, stop current walk animation so that the slow animation plays
+                    player.animations.stop("walk");
+                    // Prepare next dialog
+                }
+
+            } else {
+                this.isTimeStopped = false;
+            }
+
+            if (this.slowButton.isDown) {
+                if (!this.dialogs.slow.completed) {
+                    this.prepareNextDialog();
+                }
+                // Player is pressing slow down
+                // TODO: Slow down over time
+                if (player.slowTimer <= 0 && player.cd <= 0) {
+                    player.cd = player.cdTime;
+                    player.slowTimer = player.slowTime;
+                    this.time.slowMotion = 3.0;
+                    this.time.desiredFps = 180;
+                }
+            } else {
+                player.slowTimer = 0;
+                this.time.slowMotion = 1.0;
+                this.time.desiredFps = 60;
+            }
+
+            // Debug
+            if (this.input.keyboard.isDown(Phaser.Keyboard.P)) {
+                this.showDialog("This is a test");
+            }
+
+            // Play animations
+            if (player.animations.currentAnim.name !== "disappear" || !player.animations.currentAnim.isPlaying) {
+                if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
+                    player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
+                    if (this.stepTimer > this.stepWaitTime) {
+                        this.stepTimer = 0;
+                        this.playSound("step");
+                    }
+                } else {
+                    this.stepTimer = 0;
+                    player.animations.stop("walk");
+                }
+            }
+
+            // Update orientation of dialog
+            this.dialog.scale.x = player.scale.x;
+        }
     }
 };
