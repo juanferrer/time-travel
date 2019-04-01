@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals Phaser, debug, gameControl, player, playerGhost, score $*/
+/* globals Phaser, debug, gameControl, player, playerGhost, score, $, game*/
 
 /// <reference path="../typescript/phaser.d.ts" />
 /// <reference path="../typescript/phaser-nineslice.d.ts" />
@@ -24,7 +24,7 @@ gameControl.MainGameScreen = function () {
     this.enemy2Group;
     this.tubeFillingMaxY = 200;
 
-    
+
     // Score
     this.scoreSubmission;
     this.scoreLeft;
@@ -264,7 +264,7 @@ gameControl.MainGameScreen = function () {
      */
     this.enterTimeRift = function (player, timeRift) {
         // Disable gravity
-        game.physics.arcade.isPaused = true;
+        this.physics.arcade.isPaused = true;
         // TODO: Show end animation
         // TODO: Name input
         this.enterScoreSubmission(this.endGame);
@@ -299,15 +299,15 @@ gameControl.MainGameScreen = function () {
                 // Do nothing
                 break;
         }
-    }
+    };
 
     /**
      * Enter score submission state
      * @param {function} callback
      */
     this.enterScoreSubmission = function (callback) {
-        game.physics.arcade.isPaused = true;
-        
+        this.physics.arcade.isPaused = true;
+
         // Modify input
 
         // Show input area
@@ -325,7 +325,7 @@ gameControl.MainGameScreen = function () {
         this.scoreRight = this.add.sprite(500, 300, "arrow");
         this.scoreRight.anchor.setTo(0.5, 0.5);
         this.scoreRight.angle += 90;
-        
+
         this.scoreUp = this.add.sprite(400, 250, "arrow");
         this.scoreUp.anchor.setTo(0.5, 0.5);
 
@@ -338,8 +338,8 @@ gameControl.MainGameScreen = function () {
         this.scoreSubmission.addChild(this.scoreUp);
         this.scoreSubmission.addChild(this.scoreDown);
 
-        //this.endGame();
-    }
+        // callback();
+    };
 
     /**
      * Split a text into an array of lines of a specified length
@@ -671,7 +671,7 @@ gameControl.MainGameScreen.prototype = {
                     this.cursors.left.reset();
                 }
             }
-            
+
             if (this.cursors.right.isDown) {
                 if (this.cursors.right.justPressed() || this.cursors.right.duration > 500) {
                     this.moveLetterSelector("right");

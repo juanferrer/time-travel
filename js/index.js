@@ -3,7 +3,7 @@
 
 window.onload = function () {
     // eslint-disable-next-line no-global-assign
-    game = new Phaser.Game(parseInt($("#game-container").css("width")) - 14, 600, Phaser.AUTO, "game-container");
+    game = new Phaser.Game(parseInt($("#game-container").css("width")) - 2, parseInt($("#game-container").css("height")) - 2, Phaser.AUTO, "game-container");
     game.state.add("Boot", gameControl.Boot);
     game.state.add("Preloader", gameControl.Preloader);
     game.state.add("StartScreen", gameControl.StartScreen);
