@@ -12,6 +12,9 @@ window.onload = function () {
     game.state.start("Boot");
 };
 
+var score;
+var playerName;
+
 // Debug object, mainly for console.log and console.output
 // eslint-disable-next-line no-unused-vars
 var debug = {

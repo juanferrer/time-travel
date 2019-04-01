@@ -35,7 +35,7 @@ gameControl.GameOverScreen.prototype = {
 
         this.playAgainButton = this.add.nineSlice(this.world.centerX - 100, this.world.centerY * 2 - 60, "button", null, 200, 70);
         this.playAgainButton.inputEnabled = true;
-        this.playAgainButton.events.onInputDown.addOnce(() => { this.state.start("MainGameScreen"); }, this);
+        this.playAgainButton.events.onInputDown.addOnce(() => { this.state.start("MainGameScreen", true, false); }, this);
 
         this.playAgainButton.fixedToCamera = true;
         this.playAgainButton.anchor.setTo(0.5, 0.5);

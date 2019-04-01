@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals Phaser, debug, gameControl, player, playerGhost, score, $, game*/
+/* globals Phaser, debug, gameControl, player, playerGhost, score, playerName, $, game*/
 
 /// <reference path="../typescript/phaser.d.ts" />
 /// <reference path="../typescript/phaser-nineslice.d.ts" />
@@ -31,10 +31,8 @@ gameControl.MainGameScreen = function () {
     this.scoreRight;
     this.scoreUp;
     this.scoreDown;
-    this.char1;
-    this.char2;
-    this.char3;
-    this.letters = [" ", " ", " "];
+    this.chars = [];
+    this.letters = ["A", "A", "A"];
 
     // Player animation info
     this.playerWalking;
@@ -266,8 +264,9 @@ gameControl.MainGameScreen = function () {
         // Disable gravity
         this.physics.arcade.isPaused = true;
         // TODO: Show end animation
-        // TODO: Name input
-        this.enterScoreSubmission(this.endGame);
+
+        // Name input
+        this.enterScoreSubmission();
     };
 
     /**
@@ -275,25 +274,36 @@ gameControl.MainGameScreen = function () {
      * @param {string} direction
      */
     this.moveLetterSelector = function (direction) {
-
-        let letterIndex = (this.scoreUp.position.x - 350) % 50;
+        const letterSize = 50;
+        const center = (game.canvas.width) / 2;
+        let letterIndex = (this.scoreUp.position.x + letterSize - center) / letterSize;
+        let charIndex = 0;
+        const letterStream = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
         switch (direction.toUpperCase()) {
             case "LEFT":
-                this.scoreUp.position.x = this.scoreDown.position.x -= 50;
-                if (this.scoreUp.position.x < (game.canvas.width) / 2 - 50) {
-                    this.scoreUp.position.x = this.scoreDown.position.x = (game.canvas.width) / 2 + 50;
+                this.scoreUp.position.x = this.scoreDown.position.x -= letterSize;
+                if (this.scoreUp.position.x < center - letterSize) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = center + letterSize;
                 }
                 break;
             case "RIGHT":
-                this.scoreUp.position.x = this.scoreDown.position.x += 50;
-                if (this.scoreUp.position.x > (game.canvas.width) / 2 + 50) {
-                    this.scoreUp.position.x = this.scoreDown.position.x = (game.canvas.width) / 2 - 50;
+                this.scoreUp.position.x = this.scoreDown.position.x += letterSize;
+                if (this.scoreUp.position.x > center + letterSize) {
+                    this.scoreUp.position.x = this.scoreDown.position.x = center - letterSize;
                 }
                 break;
             case "UP":
+                charIndex = letterStream.indexOf(this.letters[letterIndex]) - 1;
+                if (charIndex < 0) charIndex = letterStream.length - 1;
+                this.letters[letterIndex] = letterStream[charIndex];
+                this.chars[letterIndex].setText(this.letters[letterIndex]);
                 break;
             case "DOWN":
+                charIndex = letterStream.indexOf(this.letters[letterIndex]) + 1;
+                if (charIndex >= letterStream.length) charIndex = 0;
+                this.letters[letterIndex] = letterStream[charIndex];
+                this.chars[letterIndex].setText(this.letters[letterIndex]);
                 break;
             default:
                 // Do nothing
@@ -301,11 +311,8 @@ gameControl.MainGameScreen = function () {
         }
     };
 
-    /**
-     * Enter score submission state
-     * @param {function} callback
-     */
-    this.enterScoreSubmission = function (callback) {
+    /** Enter score submission state */
+    this.enterScoreSubmission = function () {
         this.physics.arcade.isPaused = true;
 
         // Modify input
@@ -317,19 +324,22 @@ gameControl.MainGameScreen = function () {
         graphics.endFill();
         this.scoreSubmission.fixedToCamera = true;
 
+        let centerX = (game.canvas.width) / 2;
+        let centerY = (game.canvas.height) / 2;
+
         // Add arrows and spaces
-        this.scoreLeft = this.add.sprite((game.canvas.width) / 2 - 100, (game.canvas.height) / 2, "arrow");
+        this.scoreLeft = this.add.sprite(centerX - 100, centerY, "arrow");
         this.scoreLeft.anchor.setTo(0.5, 0.5);
         this.scoreLeft.angle -= 90;
 
-        this.scoreRight = this.add.sprite((game.canvas.width) / 2 + 100, (game.canvas.height) / 2, "arrow");
+        this.scoreRight = this.add.sprite(centerX + 100, centerY, "arrow");
         this.scoreRight.anchor.setTo(0.5, 0.5);
         this.scoreRight.angle += 90;
 
-        this.scoreUp = this.add.sprite((game.canvas.width) / 2, (game.canvas.height) / 2 - 50, "arrow");
+        this.scoreUp = this.add.sprite(centerX, centerY - 50, "arrow");
         this.scoreUp.anchor.setTo(0.5, 0.5);
 
-        this.scoreDown = this.add.sprite((game.canvas.width) / 2, (game.canvas.height) / 2 + 50, "arrow");
+        this.scoreDown = this.add.sprite(centerX, centerY + 50, "arrow");
         this.scoreDown.anchor.setTo(0.5, 0.5);
         this.scoreDown.angle -= 180;
 
@@ -338,8 +348,29 @@ gameControl.MainGameScreen = function () {
         this.scoreSubmission.addChild(this.scoreUp);
         this.scoreSubmission.addChild(this.scoreDown);
 
+        let style = { font: "40px 'VT323'", fill: "#ffffff" };
+        this.chars[0] = this.add.text(centerX - 50, centerY, this.letters[0], style);
+        this.chars[1] = this.add.text(centerX, centerY, this.letters[1], style);
+        this.chars[2] = this.add.text(centerX + 50, centerY, this.letters[2], style);
 
-        // callback();
+        this.chars[0].anchor.setTo(0.5, 0.5);
+        this.chars[1].anchor.setTo(0.5, 0.5);
+        this.chars[2].anchor.setTo(0.5, 0.5);
+
+        this.scoreSubmission.addChild(this.chars[0]);
+        this.scoreSubmission.addChild(this.chars[1]);
+        this.scoreSubmission.addChild(this.chars[2]);
+
+        this.submitButton = this.add.nineSlice(centerX, centerY + 150, "button", null, 200, 70);
+        this.submitButton.inputEnabled = true;
+        this.submitButton.events.onInputDown.addOnce(() => { this.endGame(); }, this);
+        this.submitButton.anchor.setTo(0.5, 0.5);
+
+        this.submitText = this.add.text(0, 0, "Submit", { font: "40px 'VT323'", fill: "#000000" });
+        this.submitButton.addChild(this.submitText);
+        this.submitText.anchor.setTo(0.5, 0.5);
+
+        this.scoreSubmission.addChild(this.submitButton);
     };
 
     /**
@@ -411,10 +442,12 @@ gameControl.MainGameScreen = function () {
         if (player.hasStopwatch) {
             score += 5000;
         }
+
+        playerName = this.letters.join("");
         // Send player's score
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
-            data: { type: "SUBMIT_SCORE", name: "TES", score: score },
+            data: { type: "SUBMIT_SCORE", name: playerName, score: score },
             error: (request, status, error) => {
                 debug.log("Request: " + request);
                 debug.log("Status: " + status);
@@ -459,6 +492,9 @@ gameControl.MainGameScreen.prototype = {
 
         this.scale.scaleMode = Phaser.ScaleManager.NO_SCALE;
         score = 0;
+        if (playerName) {
+            this.letters = playerName.split();
+        }
 
         this.physics.startSystem(Phaser.Physics.ARCADE);
         this.physics.arcade.gravity.y = 100;
@@ -469,7 +505,7 @@ gameControl.MainGameScreen.prototype = {
         this.map.addTilesetImage("walls", "walls");
         this.map.addTilesetImage("wallpaper", "wallpaper", 120, 120);
         this.map.addTilesetImage("door", "doors");
-        this.stage.backgroundColor = "#FFAC5B";
+        this.stage.backgroundColor = "#444444";
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
         this.doors = this.add.group();
@@ -885,5 +921,10 @@ gameControl.MainGameScreen.prototype = {
             // Update orientation of dialog
             this.dialog.scale.x = player.scale.x;
         }
+    },
+
+    shutdown: function () {
+        this.scoreSubmission = undefined;
+        player = undefined;
     }
 };
