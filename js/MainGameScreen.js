@@ -316,6 +316,9 @@ gameControl.MainGameScreen = function () {
     this.endGame = function () {
         // Calculate players's score (Score time - gameTime in ms) + 5000 if extra achieved
         score = 100000 - (this.gameTime * 1000);
+        if (player.hasStopwatch) {
+            score += 5000;
+        }
         // Send player's score
         $.ajax("https://vesta.uclan.ac.uk/~jeferrer-cortez/php/highscores.php", {
             type: "POST",
