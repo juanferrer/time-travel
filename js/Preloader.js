@@ -1,7 +1,5 @@
 /* globals gameControl, game, debug, Phaser, PhaserNineSlice */
 
-var score = 0;
-
 gameControl.Preloader = function () {
     this.preloadBar = null;
     this.titleText = null;
@@ -30,6 +28,7 @@ gameControl.Preloader.prototype = {
         this.load.spritesheet("enemy1", "assets/images/enemy1.png", 70, 80, 3);
         this.load.spritesheet("enemy2", "assets/images/enemy2.png", 70, 80, 3);
         this.load.spritesheet("doors", "assets/images/door.png", 120, 120, 5);
+        this.load.spritesheet("hats", "assets/images/hats.png", 55, 55, hatsAmount);
         this.load.spritesheet("stairsDoors", "assets/images/stairsDoor.png", 120, 120, 5);
         this.load.image("stopwatch", "assets/images/stopwatch.png");
         this.load.spritesheet("timeRift", "assets/images/timeRift.png", 60, 60, 4);

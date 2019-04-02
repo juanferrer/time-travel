@@ -23,6 +23,8 @@ gameControl.MainGameScreen = function () {
     this.enemy1Group;
     this.enemy2Group;
     this.tubeFillingMaxY = 200;
+    this.hat;
+    this.hatGhost;
 
 
     // Score
@@ -348,10 +350,10 @@ gameControl.MainGameScreen = function () {
         this.scoreSubmission.addChild(this.scoreUp);
         this.scoreSubmission.addChild(this.scoreDown);
 
-        let style = { font: "40px 'VT323'", fill: "#ffffff" };
-        this.chars[0] = this.add.text(centerX - 50, centerY, this.letters[0], style);
-        this.chars[1] = this.add.text(centerX, centerY, this.letters[1], style);
-        this.chars[2] = this.add.text(centerX + 50, centerY, this.letters[2], style);
+        let textStyle = { font: "40px 'VT323'", fill: "#ffffff" };
+        this.chars[0] = this.add.text(centerX - 50, centerY, this.letters[0], textStyle);
+        this.chars[1] = this.add.text(centerX, centerY, this.letters[1], textStyle);
+        this.chars[2] = this.add.text(centerX + 50, centerY, this.letters[2], textStyle);
 
         this.chars[0].anchor.setTo(0.5, 0.5);
         this.chars[1].anchor.setTo(0.5, 0.5);
@@ -364,6 +366,8 @@ gameControl.MainGameScreen = function () {
         this.submitButton = this.add.nineSlice(centerX, centerY + 150, "button", null, 200, 70);
         this.submitButton.inputEnabled = true;
         this.submitButton.events.onInputDown.addOnce(() => { this.endGame(); }, this);
+        this.submitButton.events.onInputOver.add(() => { this.submitButton.resize(204, 74); }, this);
+        this.submitButton.events.onInputOut.add(() => { this.submitButton.resize(200, 70); }, this);
         this.submitButton.anchor.setTo(0.5, 0.5);
 
         this.submitText = this.add.text(0, 0, "Submit", { font: "40px 'VT323'", fill: "#000000" });
@@ -562,6 +566,18 @@ gameControl.MainGameScreen.prototype = {
         playerGhost.alpha = 0.5;
         playerGhost.visible = false;
 
+        // Add hat
+        if (hatIndex >= 0) {
+            this.hat = this.add.sprite(0, 10, "hats", hatIndex);
+            this.hat.anchor.setTo(0.5, 1);
+            this.hat.enableBody = true;
+            player.addChild(this.hat);
+
+            this.hadGhost = this.add.sprite(0, 10, "hats", hatIndex);
+            this.hadGhost.anchor.setTo(0.5, 1);
+            playerGhost.addChild(this.hadGhost);
+        }
+
         this.dialog = this.add.nineSlice(0, 0, "dialog", null, 100, 70);
         this.dialog.visible = false;
         this.dialog.anchor.setTo(0, 1);
@@ -629,7 +645,10 @@ gameControl.MainGameScreen.prototype = {
         this.camera.x = player.position.x;
         this.camera.y = player.position.y;
         this.camera.follow(player, null, 0.05, 0.05);
-
+        
+        if (hatIndex >= 0) {
+            this.hat.body.allowGravity = false;
+        }
         player.body.collideWorldBounds = true;
         player.body.gravity.y = 2000;
         player.body.maxVelocity.y = 2000;
@@ -700,12 +719,6 @@ gameControl.MainGameScreen.prototype = {
 
     update: function () {
         if (this.scoreSubmission) {
-            if (this.submitButton.input.pointerOver()) {
-                this.submitButton.resize(204, 74);
-            } else {
-                this.submitButton.resize(200, 70);
-            }
-
             // Don't go into normal loop, we're submitting our score
             if (this.cursors.left.isDown) {
                 if (this.cursors.left.justPressed() || this.cursors.left.duration > 500) {

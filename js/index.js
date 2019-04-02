@@ -7,6 +7,7 @@ window.onload = function () {
     game.state.add("Boot", gameControl.Boot);
     game.state.add("Preloader", gameControl.Preloader);
     game.state.add("StartScreen", gameControl.StartScreen);
+    game.state.add("StoreScreen", gameControl.StoreScreen);
     game.state.add("MainGameScreen", gameControl.MainGameScreen);
     game.state.add("GameOverScreen", gameControl.GameOverScreen);
     game.state.start("Boot");
@@ -14,6 +15,10 @@ window.onload = function () {
 
 var score;
 var playerName;
+var hatIndex;
+var hatsAmount = 3;
+// TODO: Load from local storage
+var hatsUnlocked = new Set([]);
 
 // Debug object, mainly for console.log and console.output
 // eslint-disable-next-line no-unused-vars
