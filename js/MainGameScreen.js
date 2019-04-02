@@ -687,7 +687,10 @@ gameControl.MainGameScreen.prototype = {
             timeRift.animations.play("normal", 20, true);
         });
 
+        // Set the size of the body of the agents
         player.body.setSize(60, 75);
+        this.enemy1Group.callAll("body.setSize", "body", 60, 75);
+        this.enemy2Group.callAll("body.setSize", "body", 60, 75);
 
         // Player cooldowns
         player.cd = 0;
@@ -845,7 +848,7 @@ gameControl.MainGameScreen.prototype = {
                 }
             }
 
-            if (this.jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+            if (this.jumpButton.isDown && (player.body.onFloor() || player.body.blocked.down)) {
                 // Prepare next dialog
                 if (!this.dialogs.jump.completed) {
                     this.prepareNextDialog();
