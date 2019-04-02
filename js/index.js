@@ -28,6 +28,7 @@ const saveLocations = {
     // Load from local storage
     let hats = JSON.parse(localStorage.getItem(saveLocations.hatsUnlocked)) || [];
     hatsUnlocked = new Set(hats);
+    hatIndex = JSON.parse(localStorage.getItem(saveLocations.hatIndex));
 }
 
 // Debug object, mainly for console.log and console.output
