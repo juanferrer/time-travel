@@ -65,5 +65,19 @@ gameControl.GameOverScreen.prototype = {
                 this.displayHighScores(JSON.parse(data));
             }
         });
+    },
+
+    update: function() {
+        if (this.playAgainButton.input.pointerOver()) {
+            this.playAgainButton.resize(204, 74);
+        } else {
+            this.playAgainButton.resize(200, 70);
+        }
+
+        if (this.shareOnFacebookButton.input.pointerOver()) {
+            this.shareOnFacebookButton.resize(204, 74);
+        } else {
+            this.shareOnFacebookButton.resize(200, 70);
+        }
     }
 };

@@ -700,6 +700,12 @@ gameControl.MainGameScreen.prototype = {
 
     update: function () {
         if (this.scoreSubmission) {
+            if (this.submitButton.input.pointerOver()) {
+                this.submitButton.resize(204, 74);
+            } else {
+                this.submitButton.resize(200, 70);
+            }
+
             // Don't go into normal loop, we're submitting our score
             if (this.cursors.left.isDown) {
                 if (this.cursors.left.justPressed() || this.cursors.left.duration > 500) {
