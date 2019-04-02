@@ -1,4 +1,4 @@
-/* globals gameControl, debug, $, Phaser */
+/* globals gameControl, debug, $, Phaser, saveLocations */
 
 /// <reference path="../typescript/phaser.d.ts" />
 
@@ -16,18 +16,21 @@ gameControl.StoreScreen = function () {
 		hatsUnlocked.add(index);
 		this.hatButtons[index].events.onInputDown.addOnce(this.equip, this, 0, index);
 		this.hatButtons[index].children[0].text = "Equip";
+		localStorage.setItem(saveLocations.hatsUnlocked, JSON.stringify(Array.from(hatsUnlocked)));
 	};
 
 	this.equip = function (sender, object, index) {
 		hatIndex = index;
 		this.hatButtons[index].events.onInputDown.addOnce(this.unequip, this, 0, index);
 		this.hatButtons[index].children[0].text = "Unequip";
+		localStorage.setItem(saveLocations.hatIndex, hatIndex);
 	};
 
 	this.unequip = function (sender, object, index) {
 		hatIndex = undefined;
 		this.hatButtons[index].events.onInputDown.addOnce(this.equip, this, 0, index);
 		this.hatButtons[index].children[0].text = "Equip";
+		localStorage.removeItem(saveLocations.hatIndex);
 	};
 };
 
@@ -65,7 +68,7 @@ gameControl.StoreScreen.prototype = {
 			let hatButtonText;
 			if (hatsUnlocked.has(i)) {
 				hatButtonText = this.add.text(0, 0, "Equip", textStyle);	
-				this.hatButtons[i].events.onInputDown.addOnce(this.unequip, this, 0, i);		
+				this.hatButtons[i].events.onInputDown.addOnce(this.equip, this, 0, i);		
 			} else {
 				hatButtonText = this.add.text(0, 0, "Unlock", textStyle);
 				this.hatButtons[i].events.onInputDown.addOnce(this.unlock, this, 0, i);

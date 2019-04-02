@@ -17,8 +17,18 @@ var score;
 var playerName;
 var hatIndex;
 var hatsAmount = 3;
-// TODO: Load from local storage
-var hatsUnlocked = new Set([]);
+var hatsUnlocked;
+
+const saveLocations = {
+    hatIndex: "time-travel-hat-index",
+    hatsUnlocked: "time-travel-hats-unlocked"
+}
+
+{
+    // Load from local storage
+    let hats = JSON.parse(localStorage.getItem(saveLocations.hatsUnlocked)) || [];
+    hatsUnlocked = new Set(hats);
+}
 
 // Debug object, mainly for console.log and console.output
 // eslint-disable-next-line no-unused-vars
