@@ -1,5 +1,5 @@
 /* eslint-disable no-global-assign */
-/* globals Phaser, debug, gameControl, player, playerGhost, score, playerName, $, game*/
+/* globals Phaser, debug, gameControl, player, playerGhost, score, playerName, $, game, hatIndex*/
 
 /// <reference path="../typescript/phaser.d.ts" />
 /// <reference path="../typescript/phaser-nineslice.d.ts" />
@@ -109,6 +109,11 @@ gameControl.MainGameScreen = function () {
         }
     };
 
+    /**
+     * Collision handler for player with door
+     * @param {Sprite} player
+     * @param {Sprite} door
+     */
     this.openDoor = function (player, door) {
         if (!door.isOpen && !door.isLocked) {
             door.animations.play("open", this.doorFPS / this.time.slowMotion);
@@ -122,6 +127,11 @@ gameControl.MainGameScreen = function () {
         }
     };
 
+    /**
+     * Animation for player with stairs door
+     * @param {Sprite} player
+     * @param {Sprite} door
+     */
     this.openStairsDoor = function (player, door) {
         door.animations.play("open", this.doorFPS / this.time.slowMotion);
         this.playSound("openDoor");
@@ -133,6 +143,11 @@ gameControl.MainGameScreen = function () {
         }, 3000, door);
     };
 
+    /**
+     * Go through stairs animation
+     * @param {Function} callback
+     * @param {Number} timer
+     */
     this.playerGoThroughStairs = function (callback, timer = 1000) {
         player.renderable = false;
         setTimeout(() => {
@@ -141,6 +156,11 @@ gameControl.MainGameScreen = function () {
         }, timer);
     };
 
+    /**
+     * Collision handler for player with stairs door
+     * @param {Sprite} player
+     * @param {Sprite} door
+     */
     this.goThroughStairsDoor = function (player, door) {
         if (door.isLocked) {
 
@@ -440,6 +460,7 @@ gameControl.MainGameScreen = function () {
         this.dialog.visible = false;
     };
 
+    /** Trigger the end of the game, calculate score and go to end screen */
     this.endGame = function () {
         // Calculate players's score (Score time - gameTime in ms) + 5000 if extra achieved
         score = 100000 - (this.gameTime * 1000);
@@ -464,6 +485,10 @@ gameControl.MainGameScreen = function () {
         });
     };
 
+    /**
+     * General function for playing sounds
+     * @param {string} type
+     */
     this.playSound = function (type/*, position*/) {
         if (this.time.slowMotion > 1) {
             switch (type) {
@@ -487,6 +512,15 @@ gameControl.MainGameScreen = function () {
                     break;
             }
         }
+    };
+
+    /**
+     * Collision handler for enemy and a door or wall
+     * @param {Sprite} enemy
+     * @param {Sprite} boundaryObject
+     */
+    this.enemyReachedEndOfRoute = function (enemy, boundaryObject) {
+
     };
 };
 
@@ -645,7 +679,7 @@ gameControl.MainGameScreen.prototype = {
         this.camera.x = player.position.x;
         this.camera.y = player.position.y;
         this.camera.follow(player, null, 0.05, 0.05);
-        
+
         if (hatIndex >= 0) {
             this.hat.body.allowGravity = false;
         }
@@ -810,6 +844,9 @@ gameControl.MainGameScreen.prototype = {
             this.physics.arcade.overlap(player, this.enemy1Group, this.killPlayer, null, this);
             this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
             this.physics.arcade.overlap(player, this.timeRift, this.enterTimeRift, null, this);
+
+            // Enemy movement
+            this.physics.arcade.overlap(this.enemy1Group, this.doors, this.enemyReachedEndOfRoute, null, this);
             player.body.velocity.x = 0;
 
             // Check input

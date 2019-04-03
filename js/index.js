@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars*/
+
 /* globals game, Phaser, gameControl, $ */
 /// <reference path="../typescript/phaser.d.ts" />
 
@@ -22,7 +24,7 @@ var hatsUnlocked;
 const saveLocations = {
     hatIndex: "time-travel-hat-index",
     hatsUnlocked: "time-travel-hats-unlocked"
-}
+};
 
 {
     // Load from local storage
