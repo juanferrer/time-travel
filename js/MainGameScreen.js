@@ -8,6 +8,7 @@ gameControl.MainGameScreen = function () {
     this.map;
     this.bgLayer;
     this.floorLayer;
+    this.wallLayer;
     this.doors;
     this.stairsDoors;
     this.lockedStairsDoors;
@@ -525,10 +526,10 @@ gameControl.MainGameScreen = function () {
      * @param {Phaser.Sprite} boundaryObject
      */
     this.enemyReachedEndOfRoute = function (enemy, boundaryObject) {
-        if (enemy.lastBoundary !== boundaryObject) {
+        if (Math.abs(enemy.lastBoundaryPos - enemy.position.x) > 50) {
             // Stop where you are
             enemy.isWalking = false;
-            enemy.lastBoundary = boundaryObject;
+            enemy.lastBoundaryPos = enemy.position.x;
             enemy.animations.stop("walk");
 
             setTimeout(this.enemyContinuePatrol, this.enemyWaitTime, enemy);
@@ -570,6 +571,7 @@ gameControl.MainGameScreen.prototype = {
         this.stage.backgroundColor = "#444444";
         this.bgLayer = this.map.createLayer("BG");
         this.floorLayer = this.map.createLayer("Floor");
+        this.wallLayer = this.map.createLayer("Walls");
         this.doors = this.add.group();
         this.doors.enableBody = true;
         this.map.createFromObjects("Doors", 10, "doors", 0, true, false, this.doors);
@@ -774,6 +776,7 @@ gameControl.MainGameScreen.prototype = {
 
         // Prepare collisions
         this.map.setCollisionBetween(1, 999, true, "Floor");
+        this.map.setCollisionBetween(1, 999, true, "Walls");
 
         // Prepare for the start
         this.dialogs.move.counter = this.dialogs.nextStepCounterTime;
@@ -781,9 +784,11 @@ gameControl.MainGameScreen.prototype = {
         player.keyCount = 0;
         player.hasStopwatch = false;
         this.enemy1Group.forEach((enemy) => {
+            enemy.lastBoundaryPos = 0;
             this.enemyContinuePatrol(enemy);
         });
         this.enemy2Group.forEach((enemy) => {
+            enemy.lastBoundaryPos = 0;
             this.enemyContinuePatrol(enemy);
         });
     },
@@ -868,10 +873,11 @@ gameControl.MainGameScreen.prototype = {
 
             // Floor collisions
             this.physics.arcade.collide(player, this.floorLayer, this.collisionHandler, null, this);
-            this.physics.arcade.collide(this.enemy1Group, this.floorLayer, this.collisionHandler, null, this);
-            this.physics.arcade.collide(this.enemy2Group, this.floorLayer, this.collisionHandler, null, this);
+            this.physics.arcade.collide(this.enemy1Group, this.floorLayer);
+            this.physics.arcade.collide(this.enemy2Group, this.floorLayer);
 
-            // Player interaction
+            // Player
+            this.physics.arcade.collide(player, this.wallLayer, this.collisionHandler, null, this);
             this.physics.arcade.overlap(player, this.doors, this.openDoor, null, this);
             this.physics.arcade.overlap(player, this.keys, this.grabKey, null, this);
             this.physics.arcade.overlap(player, this.stopwatches, this.grabStopwatch, null, this);
@@ -879,11 +885,13 @@ gameControl.MainGameScreen.prototype = {
             this.physics.arcade.overlap(player, this.enemy2Group, this.killPlayer, null, this);
             this.physics.arcade.overlap(player, this.timeRift, this.enterTimeRift, null, this);
 
-            // Enemy movement
+            // Enemy
             this.physics.arcade.overlap(this.enemy1Group, this.doors, this.enemyReachedEndOfRoute, null, this);
-            //this.physics.arcade.overlap(this.enemy1Group, this.floorLayer, this.enemyReachedEndOfRoute, null, this);
+            this.physics.arcade.overlap(this.enemy1Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
             this.physics.arcade.overlap(this.enemy2Group, this.doors, this.enemyReachedEndOfRoute, null, this);
-            //this.physics.arcade.overlap(this.enemy2Group, this.floorLayer, this.enemyReachedEndOfRoute, null, this);
+            this.physics.arcade.overlap(this.enemy2Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
+
+
             player.body.velocity.x = 0;
 
             // Amend agent speed

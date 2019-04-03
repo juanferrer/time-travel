@@ -1,4 +1,4 @@
-/* globals gameControl, game, debug, Phaser, PhaserNineSlice */
+/* globals gameControl, game, debug, Phaser, PhaserNineSlice, hatsAmount */
 
 gameControl.Preloader = function () {
     this.preloadBar = null;
