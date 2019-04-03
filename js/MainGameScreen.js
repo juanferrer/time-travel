@@ -26,6 +26,8 @@ gameControl.MainGameScreen = function () {
     this.hat;
     this.hatGhost;
 
+    // Player
+    this.playerMoveSpeed = 300;
 
     // Score
     this.scoreSubmission;
@@ -36,7 +38,7 @@ gameControl.MainGameScreen = function () {
     this.chars = [];
     this.letters = ["A", "A", "A"];
 
-    // Player animation info
+    // Animation
     this.playerWalking;
     this.playerInAir;
     this.jumpFPS;
@@ -48,9 +50,12 @@ gameControl.MainGameScreen = function () {
     this.closeDoorSound;
     this.woodStepSound;
     this.woodStepSlowSound;
-
     this.stepWaitTime = 0.1666666;
     this.stepTimer = this.stepWaitTime + 1; // Make it greater then stepWaitTime so that is starts immediately
+
+    // Enemies
+    this.enemyWaitTime = 1000;
+    this.enemyMoveSpeed = 300;
 
     // Controls
     this.cursors;
@@ -111,8 +116,8 @@ gameControl.MainGameScreen = function () {
 
     /**
      * Collision handler for player with door
-     * @param {Sprite} player
-     * @param {Sprite} door
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} door
      */
     this.openDoor = function (player, door) {
         if (!door.isOpen && !door.isLocked) {
@@ -129,8 +134,8 @@ gameControl.MainGameScreen = function () {
 
     /**
      * Animation for player with stairs door
-     * @param {Sprite} player
-     * @param {Sprite} door
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} door
      */
     this.openStairsDoor = function (player, door) {
         door.animations.play("open", this.doorFPS / this.time.slowMotion);
@@ -158,8 +163,8 @@ gameControl.MainGameScreen = function () {
 
     /**
      * Collision handler for player with stairs door
-     * @param {Sprite} player
-     * @param {Sprite} door
+     * @param {Phaser.Sprite} player
+     * @param {Phaser.Sprite} door
      */
     this.goThroughStairsDoor = function (player, door) {
         if (door.isLocked) {
@@ -516,11 +521,30 @@ gameControl.MainGameScreen = function () {
 
     /**
      * Collision handler for enemy and a door or wall
-     * @param {Sprite} enemy
-     * @param {Sprite} boundaryObject
+     * @param {Phaser.Sprite} enemy
+     * @param {Phaser.Sprite} boundaryObject
      */
     this.enemyReachedEndOfRoute = function (enemy, boundaryObject) {
+        if (enemy.lastBoundary !== boundaryObject) {
+            // Stop where you are
+            enemy.isWalking = false;
+            enemy.lastBoundary = boundaryObject;
+            enemy.animations.stop("walk");
 
+            setTimeout(this.enemyContinuePatrol, this.enemyWaitTime, enemy);
+        }
+    };
+
+    /**
+     * Enemy has stopped. Now should turn around and continue patrol
+     * @param {Phaser.Sprite} enemy
+     */
+    this.enemyContinuePatrol = function (enemy) {
+        // Turn around
+        enemy.scale.x *= -1;
+        // Start moving again
+        enemy.isWalking = true;
+        //enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
     };
 };
 
@@ -575,11 +599,12 @@ gameControl.MainGameScreen.prototype = {
         this.enemy1Group.enableBody = true;
         this.map.createFromObjects("Enemy1", 46, "enemy1", 0, true, false, this.enemy1Group);
 
-        this.enemy1Group.callAll("animations.add", "animations", "walk", [1, 2], 20);
-
         this.enemy2Group = this.add.group();
         this.enemy2Group.enableBody = true;
         this.map.createFromObjects("Enemy2", 50, "enemy2", 0, true, false, this.enemy2Group);
+
+        this.enemy1Group.callAll("animations.add", "animations", "walk", [1, 2], 20);
+        this.enemy2Group.callAll("animations.add", "animations", "walk", [1, 2], 20);
 
         this.stopwatches = this.add.group();
         this.stopwatches.enableBody = true;
@@ -599,6 +624,9 @@ gameControl.MainGameScreen.prototype = {
         playerGhost.anchor.setTo(0.5, 0);
         playerGhost.alpha = 0.5;
         playerGhost.visible = false;
+
+        this.enemy1Group.callAll("anchor.setTo", "anchor", 0.5, 0);
+        this.enemy2Group.callAll("anchor.setTo", "anchor", 0.5, 0);
 
         // Add hat
         if (hatIndex >= 0) {
@@ -752,6 +780,12 @@ gameControl.MainGameScreen.prototype = {
         player.animations.play("walk");
         player.keyCount = 0;
         player.hasStopwatch = false;
+        this.enemy1Group.forEach((enemy) => {
+            this.enemyContinuePatrol(enemy);
+        });
+        this.enemy2Group.forEach((enemy) => {
+            this.enemyContinuePatrol(enemy);
+        });
     },
 
     update: function () {
@@ -847,7 +881,26 @@ gameControl.MainGameScreen.prototype = {
 
             // Enemy movement
             this.physics.arcade.overlap(this.enemy1Group, this.doors, this.enemyReachedEndOfRoute, null, this);
+            //this.physics.arcade.overlap(this.enemy1Group, this.floorLayer, this.enemyReachedEndOfRoute, null, this);
+            this.physics.arcade.overlap(this.enemy2Group, this.doors, this.enemyReachedEndOfRoute, null, this);
+            //this.physics.arcade.overlap(this.enemy2Group, this.floorLayer, this.enemyReachedEndOfRoute, null, this);
             player.body.velocity.x = 0;
+
+            // Amend agent speed
+            this.enemy1Group.forEach((enemy) => {
+                if (enemy.isWalking && !this.isTimeStopped) {
+                    enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
+                } else {
+                    enemy.body.velocity.x = 0;
+                }
+            });
+            this.enemy2Group.forEach((enemy) => {
+                if (enemy.isWalking && !this.isTimeStopped) {
+                    enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
+                } else {
+                    enemy.body.velocity.x = 0;
+                }
+            });
 
             // Check input
             if (this.cursors.left.isDown || this.cursors.right.isDown) {
@@ -862,13 +915,13 @@ gameControl.MainGameScreen.prototype = {
                 }
 
                 if (this.cursors.left.isDown) {
-                    player.body.velocity.x = -300;
+                    player.body.velocity.x = -this.playerMoveSpeed;
                     this.playerWalking = true;
                     if (player.scale.x > 0) {
                         player.scale.x *= -1;
                     }
                 } else if (this.cursors.right.isDown) {
-                    player.body.velocity.x = 300;
+                    player.body.velocity.x = this.playerMoveSpeed;
                     this.playerWalking = true;
                     if (player.scale.x < 0) {
                         player.scale.x *= -1;
@@ -966,7 +1019,7 @@ gameControl.MainGameScreen.prototype = {
             // Play animations
             if (player.animations.currentAnim.name !== "disappear" || !player.animations.currentAnim.isPlaying) {
                 if (this.playerWalking && !this.playerInAir && (player.body.onFloor() || player.body.touching.down)) {
-                    player.animations.play("walk", (this.walkFPS / this.time.slowMotion), false);
+                    player.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
                     if (this.stepTimer > this.stepWaitTime) {
                         this.stepTimer = 0;
                         this.playSound("step");
@@ -976,6 +1029,22 @@ gameControl.MainGameScreen.prototype = {
                     player.animations.stop("walk");
                 }
             }
+
+            this.enemy1Group.forEach((enemy) => {
+                if (enemy.isWalking) {
+                    enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
+                } else {
+                    enemy.animations.stop("walk");
+                }
+            });
+
+            this.enemy2Group.forEach((enemy) => {
+                if (enemy.isWalking) {
+                    enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
+                } else {
+                    enemy.animations.stop("walk");
+                }
+            });
 
             // Update orientation of dialog
             this.dialog.scale.x = player.scale.x;
