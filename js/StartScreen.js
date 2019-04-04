@@ -1,8 +1,9 @@
-/* globals gameControl, debug */
+/* globals gameControl, debug, game */
 
 /// <reference path="../typescript/phaser.d.ts" />
 
 gameControl.StartScreen = function () {
+    this.title;
     this.startButton;
     this.storeButton;
 
@@ -18,6 +19,9 @@ gameControl.StartScreen = function () {
 gameControl.StartScreen.prototype = {
     create: function () {
         let style = { font: "40px 'VT323'", fill: "#000000" };
+
+        this.title = this.add.image(game.canvas.width / 2, 200, "titleImage");
+        this.title.anchor.setTo(0.5, 0.5);
 
         this.stage.backgroundColor = "#444444";
         debug.log("In start screen");

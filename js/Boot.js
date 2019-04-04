@@ -9,8 +9,7 @@ gameControl.Boot = function () { };
 gameControl.Boot.prototype = {
 
     preload: function () {
-        this.load.image("preloaderBar", "assets/images/loader_bar.png");
-        this.load.image("titleImage", "assets/images/TitleImage.png");
+        this.load.image("preloaderBar", "assets/images/preloaderBar.png");
     },
 
     create: function () {

@@ -15,11 +15,10 @@ gameControl.Preloader.prototype = {
         this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY, "preloaderBar");
         this.preloadBar.anchor.setTo(0.5, 0.5);
         this.load.setPreloadSprite(this.preloadBar);
-        this.titleText = this.add.image(this.world.centerX, this.world.centerY - 220, "titleImage");
-        this.titleText.anchor.setTo(0.5, 0.5);
+
 
         // Images
-        this.load.image("titleScreen", "assets/images/TitleBG.png");
+        this.load.image("titleImage", "assets/images/titleImage.png");
         this.load.spritesheet("player", "assets/images/detective.png", 70, 80, 13);
         this.load.tilemap("level", "assets/level0.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("wallpaper", "assets/images/wallpaper.png");
