@@ -797,6 +797,23 @@ gameControl.MainGameScreen.prototype = {
             enemy.lastBoundaryPos = 0;
             this.enemyContinuePatrol(enemy);
         });
+
+        // Set hat powers
+
+        switch (hatIndex) {
+            case 0:
+                // 33% longer powers (wealthy)
+                player.slowTime += player.slowTime / 3;
+                player.stopTime += player.stopTime / 3;
+                break;
+            case 1:
+                // +100 movement speed
+                this.playerMoveSpeed += 100;
+                break;
+            case 2:
+                // 20% reduced effect of gravity
+                player.body.gravity.y -= player.body.gravity.y * 0.2;
+        }
     },
 
     update: function () {
