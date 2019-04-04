@@ -545,7 +545,6 @@ gameControl.MainGameScreen = function () {
         enemy.scale.x *= -1;
         // Start moving again
         enemy.isWalking = true;
-        //enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, true);
     };
 };
 
@@ -887,9 +886,9 @@ gameControl.MainGameScreen.prototype = {
 
             // Enemy
             this.physics.arcade.overlap(this.enemy1Group, this.doors, this.enemyReachedEndOfRoute, null, this);
-            this.physics.arcade.overlap(this.enemy1Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
+            this.physics.arcade.collide(this.enemy1Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
             this.physics.arcade.overlap(this.enemy2Group, this.doors, this.enemyReachedEndOfRoute, null, this);
-            this.physics.arcade.overlap(this.enemy2Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
+            this.physics.arcade.collide(this.enemy2Group, this.wallLayer, this.enemyReachedEndOfRoute, null, this);
 
 
             player.body.velocity.x = 0;

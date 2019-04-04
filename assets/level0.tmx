@@ -45,7 +45,7 @@
  <objectgroup id="3" name="Enemy1">
   <object id="23" gid="46" x="540" y="5580" width="70" height="80"/>
   <object id="25" gid="46" x="2280" y="5880" width="70" height="80"/>
-  <object id="27" gid="46" x="2220" y="5400" width="70" height="80"/>
+  <object id="27" gid="46" x="1620" y="5280" width="70" height="80"/>
  </objectgroup>
  <objectgroup id="4" name="Enemy2">
   <object id="29" gid="50" x="1560" y="5880" width="70" height="80"/>
