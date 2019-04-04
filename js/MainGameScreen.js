@@ -760,8 +760,12 @@ gameControl.MainGameScreen.prototype = {
         player.cdTime = 5;
 
         // Player ability timers
+        // slowTime uses physics time, which goes at 1/3 the speed,
+        // so stopTime needs to be 3x longer
         player.slowTimer = 0;
         player.slowTime = 0.5;
+        player.stopTimer = 0;
+        player.stopTime = 1.5;
 
         this.isTimeStopped = false;
 
@@ -1038,7 +1042,7 @@ gameControl.MainGameScreen.prototype = {
             }
 
             this.enemy1Group.forEach((enemy) => {
-                if (enemy.isWalking) {
+                if (enemy.isWalking && !this.isTimeStopped) {
                     enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
                 } else {
                     enemy.animations.stop("walk");
@@ -1046,7 +1050,7 @@ gameControl.MainGameScreen.prototype = {
             });
 
             this.enemy2Group.forEach((enemy) => {
-                if (enemy.isWalking) {
+                if (enemy.isWalking && !this.isTimeStopped) {
                     enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
                 } else {
                     enemy.animations.stop("walk");
