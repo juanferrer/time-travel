@@ -56,7 +56,10 @@ gameControl.MainGameScreen = function () {
 
     // Enemies
     this.enemyWaitTime = 1000;
-    this.enemyMoveSpeed = 300;
+    this.enemyMoveSpeed = 200;
+    this.enemyChaseSpeed = 400;
+    this.enemySightDistance = 500;
+    this.line;
 
     // Controls
     this.cursors;
@@ -288,7 +291,7 @@ gameControl.MainGameScreen = function () {
      * @param {Phaser.Sprite} player
      * @param {Phaser.Sprite} timeRift
      */
-    this.enterTimeRift = function (player, timeRift) {
+    this.enterTimeRift = function (player, timeRift) { // eslint-disable-line no-unused-vars
         // Disable gravity
         this.physics.arcade.isPaused = true;
         // TODO: Show end animation
@@ -525,7 +528,7 @@ gameControl.MainGameScreen = function () {
      * @param {Phaser.Sprite} enemy
      * @param {Phaser.Sprite} boundaryObject
      */
-    this.enemyReachedEndOfRoute = function (enemy, boundaryObject) {
+    this.enemyReachedEndOfRoute = function (enemy, boundaryObject) { // eslint-disable-line no-unused-vars
         if (Math.abs(enemy.lastBoundaryPos - enemy.position.x) > 50) {
             // Stop where you are
             enemy.isWalking = false;
@@ -897,22 +900,6 @@ gameControl.MainGameScreen.prototype = {
 
             player.body.velocity.x = 0;
 
-            // Amend agent speed
-            this.enemy1Group.forEach((enemy) => {
-                if (enemy.isWalking && !this.isTimeStopped) {
-                    enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
-                } else {
-                    enemy.body.velocity.x = 0;
-                }
-            });
-            this.enemy2Group.forEach((enemy) => {
-                if (enemy.isWalking && !this.isTimeStopped) {
-                    enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
-                } else {
-                    enemy.body.velocity.x = 0;
-                }
-            });
-
             // Check input
             if (this.cursors.left.isDown || this.cursors.right.isDown) {
                 // Prepare next dialog
@@ -1041,19 +1028,98 @@ gameControl.MainGameScreen.prototype = {
                 }
             }
 
+            // We're doing a loop here, so do it only once and perform every action that needs
+            // to be performed on the enemy agents (performance)
+            // Velocity, animations and raycasting
             this.enemy1Group.forEach((enemy) => {
                 if (enemy.isWalking && !this.isTimeStopped) {
+                    if (enemy.isChasingPlayer) {
+                        enemy.body.velocity.x = this.enemyChaseSpeed * enemy.scale.x;
+                    } else {
+                        enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
+                    }
                     enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
                 } else {
+                    enemy.body.velocity.x = 0;
                     enemy.animations.stop("walk");
+                }
+
+                if (Math.abs(enemy.position.y - player.position.y) <= 150) {
+                    // Player is at the same level as the enemy
+                    if (Phaser.Math.distanceSq(enemy.position.x, enemy.position.y, player.position.x, player.position.y) <= this.enemySightDistance * this.enemySightDistance) {
+                        // Enemy is within visible distance, check if the enemy if facing the player
+                        if ((enemy.scale.x > 0 && enemy.position.x < player.position.x) || enemy.scale.x < 0 && enemy.position.x > player.position.x) {
+                            // Ok, do raycasting to see if there's anything obstructing view
+                            this.line = new Phaser.Line(enemy.position.x, enemy.position.y, player.position.x, player.position.y);
+                            let doorsHit = [];
+                            this.doors.forEach(door => {
+                                if (Phaser.Line.intersectsRectangle(this.line, door)) {
+                                    doorsHit.push(door);
+                                }
+                            });
+                            let tilesHit = this.wallLayer.getRayCastTiles(this.line, 4, false, true);
+
+                            if (tilesHit.length === 0 && doorsHit.length === 0) {
+                                // Enemy can see player... Chase!
+                                debug.log("Player in sight");
+                                enemy.isChasingPlayer = true;
+                            } else {
+                                enemy.isChasingPlayer = false;
+                            }
+                        } else {
+                            enemy.isChasingPlayer = false;
+                        }
+                    } else {
+                        enemy.isChasingPlayer = false;
+                    }
+                } else {
+                    enemy.isChasingPlayer = false;
                 }
             });
 
             this.enemy2Group.forEach((enemy) => {
                 if (enemy.isWalking && !this.isTimeStopped) {
+                    if (enemy.isChasingPlayer) {
+                        enemy.body.velocity.x = this.enemyChaseSpeed * enemy.scale.x;
+                    } else {
+                        enemy.body.velocity.x = this.enemyMoveSpeed * enemy.scale.x;
+                    }
                     enemy.animations.play("walk", this.walkFPS / this.time.slowMotion, false);
                 } else {
+                    enemy.body.velocity.x = 0;
                     enemy.animations.stop("walk");
+                }
+
+                if (Math.abs(enemy.position.y - player.position.y) <= 150) {
+                    // Player is at the same level as the enemy
+                    if (Phaser.Math.distanceSq(enemy.position.x, enemy.position.y, player.position.x, player.position.y) <= this.enemySightDistance * this.enemySightDistance) {
+                        // Enemy is within visible distance, check if the enemy if facing the player
+                        if ((enemy.scale.x > 0 && enemy.position.x < player.position.x) || enemy.scale.x < 0 && enemy.position.x > player.position.x) {
+                            // Ok, do raycasting to see if there's anything obstructing view
+                            this.line = new Phaser.Line(enemy.position.x, enemy.position.y, player.position.x, player.position.y);
+                            let doorsHit = [];
+                            this.doors.forEach(door => {
+                                if (Phaser.Line.intersectsRectangle(this.line, door)) {
+                                    doorsHit.push(door);
+                                }
+                            });
+                            let tilesHit = this.wallLayer.getRayCastTiles(this.line, 4, false, true);
+
+                            if (tilesHit.length === 0 && doorsHit.length === 0) {
+                                // Enemy can see player... Chase!
+                                debug.log("Player in sight");
+                                enemy.isChasingPlayer = true;
+                            } else {
+                                enemy.isChasingPlayer = false;
+                            }
+                        } else {
+                            enemy.isChasingPlayer = false;
+                        }
+                    } else {
+                        enemy.isChasingPlayer = false;
+                    }
+                } else {
+                    enemy.isChasingPlayer = false;
                 }
             });
 
@@ -1065,5 +1131,11 @@ gameControl.MainGameScreen.prototype = {
     shutdown: function () {
         this.scoreSubmission = undefined;
         player = undefined;
+    },
+
+    render: function () {
+        if (debug.isDev) {
+            game.debug.geom(this.line);
+        }
     }
 };
