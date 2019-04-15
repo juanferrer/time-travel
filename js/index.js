@@ -36,7 +36,7 @@ const saveLocations = {
 // Debug object, mainly for console.log and console.output
 // eslint-disable-next-line no-unused-vars
 var debug = {
-    isDev: true,
+    isDev: false,
     log: function (msg) {
         // eslint-disable-next-line no-console
         if (this.isDev) console.log(msg);

@@ -549,6 +549,10 @@ gameControl.MainGameScreen = function () {
         // Start moving again
         enemy.isWalking = true;
     };
+
+    this.killPlayer = function () {
+        this.state.start("GameOverScreen");
+    };
 };
 
 gameControl.MainGameScreen.prototype = {
@@ -633,7 +637,7 @@ gameControl.MainGameScreen.prototype = {
         this.enemy2Group.callAll("anchor.setTo", "anchor", 0.5, 0);
 
         // Add hat
-        if (hatIndex >= 0) {
+        if (hatIndex && hatIndex >= 0) {
             this.hat = this.add.sprite(0, 10, "hats", hatIndex);
             this.hat.anchor.setTo(0.5, 1);
             this.hat.enableBody = true;
@@ -712,7 +716,7 @@ gameControl.MainGameScreen.prototype = {
         this.camera.y = player.position.y;
         this.camera.follow(player, null, 0.05, 0.05);
 
-        if (hatIndex >= 0) {
+        if (hatIndex && hatIndex >= 0) {
             this.hat.body.allowGravity = false;
         }
         player.body.collideWorldBounds = true;
